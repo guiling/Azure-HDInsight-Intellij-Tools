@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="144082dc-ebad-4d7d-9b17-304247796910" name="Default" comment="Initial Spark UI framework">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/microsoft/azure/hdinsight/common/HDInsightHelper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/microsoft/azure/hdinsight/spark/common/SparkHelper.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/microsoft/azure/hdinsight/spark/UI/SparkSubmissionDialog.form" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/microsoft/azure/hdinsight/spark/UI/SparkSubmissionDialog.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+    <list default="true" id="144082dc-ebad-4d7d-9b17-304247796910" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="AzureHDInsightIntelliJTools.iws" />
@@ -34,10 +28,10 @@
         <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="188" column="21" selection-start-line="188" selection-start-column="21" selection-end-line="188" selection-end-column="21" />
+              <caret line="182" column="21" selection-start-line="182" selection-start-column="21" selection-end-line="182" selection-end-column="21" />
               <folding>
-                <marker date="1440061184233" expanded="true" signature="45653:46100" placeholder="..." />
-                <marker date="1440061184233" expanded="true" signature="45653:46115" placeholder="..." />
+                <marker date="1440061284992" expanded="true" signature="45308:45755" placeholder="..." />
+                <marker date="1440061284992" expanded="true" signature="45308:45770" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -543,6 +537,13 @@
       <option name="number" value="Default" />
       <updated>1440051814286</updated>
     </task>
+    <task id="LOCAL-00001" summary="Initial Spark UI framework">
+      <created>1440061277943</created>
+      <option name="number" value="00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1440061277943</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -598,8 +599,8 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="183" column="21" selection-start-line="183" selection-start-column="21" selection-end-line="183" selection-end-column="21" />
           <folding>
-            <marker date="1440061184233" expanded="true" signature="45653:46100" placeholder="..." />
-            <marker date="1440061184233" expanded="true" signature="45653:46115" placeholder="..." />
+            <marker date="1440061284992" expanded="true" signature="45308:45755" placeholder="..." />
+            <marker date="1440061284992" expanded="true" signature="45308:45770" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -736,10 +737,10 @@
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="188" column="21" selection-start-line="188" selection-start-column="21" selection-end-line="188" selection-end-column="21" />
+          <caret line="182" column="21" selection-start-line="182" selection-start-column="21" selection-end-line="182" selection-end-column="21" />
           <folding>
-            <marker date="1440061184233" expanded="true" signature="45653:46100" placeholder="..." />
-            <marker date="1440061184233" expanded="true" signature="45653:46115" placeholder="..." />
+            <marker date="1440061284992" expanded="true" signature="45308:45755" placeholder="..." />
+            <marker date="1440061284992" expanded="true" signature="45308:45770" placeholder="..." />
           </folding>
         </state>
       </provider>
