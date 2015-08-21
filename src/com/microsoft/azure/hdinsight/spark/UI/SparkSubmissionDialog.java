@@ -50,11 +50,4 @@ public class SparkSubmissionDialog extends JDialog {
 // add your code here if necessary
         dispose();
     }
-
-    public static void main(String[] args) {
-        SparkSubmissionDialog dialog = new SparkSubmissionDialog();
-        dialog.pack();
-        dialog.setVisible(true);
-        System.exit(0);
-    }
 }
