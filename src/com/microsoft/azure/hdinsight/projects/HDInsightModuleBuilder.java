@@ -1,22 +1,31 @@
 package com.microsoft.azure.hdinsight.projects;
 
-import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.ide.util.projectWizard.*;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.microsoft.azure.hdinsight.common.Resources;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
  * Created by zhax on 8/20/2015.
  */
-public class HDInsightModuleBuilder extends JavaModuleBuilder implements ModuleBuilderListener {
+public class HDInsightModuleBuilder extends ModuleBuilder implements ModuleBuilderListener {
+    private HDInsightTemplateItem selectedTemplate;
 
     public HDInsightModuleBuilder() {
-        addListener(this);
+        this.addListener(this);
+    }
+
+    public void setSelectedTemplate(HDInsightTemplateItem selectedTemplate)
+    {
+        this.selectedTemplate = selectedTemplate;
     }
 
     @Override
@@ -45,7 +54,23 @@ public class HDInsightModuleBuilder extends JavaModuleBuilder implements ModuleB
     }
 
     @Override
-    public void moduleCreated(Module module) {
+    public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
+        this.doAddContentEntry(modifiableRootModel);
+    }
 
+    @Override
+    public ModuleType getModuleType() {
+        return HDInsightModuleType.getInstance();
+    }
+
+    @Nullable
+    @Override
+    public ModuleWizardStep getCustomOptionsStep(WizardContext context, Disposable parentDisposable) {
+        return new HDInsightModuleWizardStep(this);
+    }
+
+    @Override
+    public void moduleCreated(Module module) {
+        JOptionPane.showMessageDialog(null, this.selectedTemplate.getDisplayText(), "HDInsight selectedTemplate", JOptionPane.OK_OPTION);
     }
 }
