@@ -169,7 +169,6 @@ public class SparkSubmissionDialog extends JDialog {
         c52.anchor = GridBagConstraints.EAST;
         contentPane.add(operationPanel, c52);
 
-
         buttonSubmit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onOK();

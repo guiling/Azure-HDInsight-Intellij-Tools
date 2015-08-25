@@ -4,7 +4,6 @@ package com.microsoft.azure.hdinsight.spark.UIHelper;
  * Created by guizha on 8/25/2015.
  */
 public class ConfigurationKeyValueRecord {
-
     private String key = "";
     private String value = "";
 

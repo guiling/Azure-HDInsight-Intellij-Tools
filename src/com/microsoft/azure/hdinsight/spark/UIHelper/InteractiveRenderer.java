@@ -8,7 +8,6 @@ import java.awt.*;
  * Created by guizha on 8/25/2015.
  */
 public class InteractiveRenderer extends DefaultTableCellRenderer {
-
     private int interactiveColumn;
 
     public InteractiveRenderer(int interactiveColumn) {
