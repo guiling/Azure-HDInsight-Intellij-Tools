@@ -5,17 +5,21 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveRenderer;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveTableModel;
+import com.microsoft.azure.hdinsight.spark.common.SparkBatchSubmission;
+import com.microsoft.azure.hdinsight.spark.common.SparkInteractiveSessions;
+import com.microsoft.azure.hdinsight.spark.common.SparkSubmissonParameter;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 public class SparkSubmissionDialog extends JDialog {
 
     private JPanel contentPane;
 
-    private final int leftControlWidth = 150;
+    private final int leftControlWidth = 200;
     private final int rightControlWidth = 300;
     private final int controlHeight = 23;
     private final int tableHeight = 120;
@@ -25,7 +29,7 @@ public class SparkSubmissionDialog extends JDialog {
     public SparkSubmissionDialog() {
         setContentPane(contentPane);
         setModal(true);
-        setSize(new Dimension(500, 380));
+        setSize(new Dimension(550, 380));
         setResizable(false);
         setLocationRelativeTo(null);
         setTitle(DialogTitle);
@@ -46,11 +50,7 @@ public class SparkSubmissionDialog extends JDialog {
         });
 
 // call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        contentPane.registerKeyboardAction(e->onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     private void addTimeoutLineItem() {
@@ -169,23 +169,11 @@ public class SparkSubmissionDialog extends JDialog {
         c52.anchor = GridBagConstraints.EAST;
         contentPane.add(operationPanel, c52);
 
-        buttonSubmit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
+        buttonSubmit.addActionListener(e -> onOK());
 
-        buttonCancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
+        buttonCancel.addActionListener(e -> onCancel());
 
-        buttonHelper.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
+        buttonHelper.addActionListener(e -> OnHelper());
     }
 
     private void onOK() {
@@ -199,6 +187,5 @@ public class SparkSubmissionDialog extends JDialog {
     }
 
     private void OnHelper(){
-
     }
 }
