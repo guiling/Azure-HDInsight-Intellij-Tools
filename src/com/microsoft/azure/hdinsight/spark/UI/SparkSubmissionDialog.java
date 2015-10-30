@@ -7,7 +7,7 @@ import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveRenderer;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveTableModel;
 import com.microsoft.azure.hdinsight.spark.common.SparkBatchSubmission;
 import com.microsoft.azure.hdinsight.spark.common.SparkInteractiveSessions;
-import com.microsoft.azure.hdinsight.spark.common.SparkSubmissonParameter;
+import com.microsoft.azure.hdinsight.spark.common.SparkSubmissionParameter;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
@@ -50,7 +50,7 @@ public class SparkSubmissionDialog extends JDialog {
         });
 
 // call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(e->onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        contentPane.registerKeyboardAction(e -> onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     private void addTimeoutLineItem() {
@@ -177,7 +177,20 @@ public class SparkSubmissionDialog extends JDialog {
     }
 
     private void onOK() {
-// add your code here
+//     add your code here
+//        try {
+//            SparkBatchSubmission.getInstance().setCredentialsProvider("admin", "HADFwfp543j95fpj8!");
+//            SparkSubmissionParameter parameter = new SparkSubmissionParameter("wasb://defaultcontainer@sparkwithlivy.blob.core.windows.net/user/spark/SimpleApp3.jar","SimpleApp");
+//            String result = SparkBatchSubmission.getInstance().createBatchSparkJob("https://sparkwithlivy10.hdinsight-stable.azure-test.net/livy/batches", parameter);
+//            result = SparkBatchSubmission.getInstance().getBatchSparkJobStatus("https://sparkwithlivy10.hdinsight-stable.azure-test.net/livy/batches", "10");
+//            result = SparkBatchSubmission.getInstance().getBatchJobFullLog("https://sparkwithlivy10.hdinsight-stable.azure-test.net/livy/batches", "10");
+//            String a = result;
+//        }
+//        catch (IOException exception){
+//
+//
+//        }
+
         dispose();
     }
 

@@ -1,7 +1,9 @@
 package com.microsoft.azure.hdinsight.spark.common;
 
-import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -31,67 +33,98 @@ public class SparkInteractiveSessions {
         return instance;
     }
 
+    private CredentialsProvider credentialsProvider =  new BasicCredentialsProvider();
+
+    /**
+     * Set http request credential using username and password
+     * @param username : username
+     * @param password : password
+     */
+    public void setCredentialsProvider(String username, String password){
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+    }
+
     /**
      * get all sessions
      * @param connectUrl : eg http://localhost:8998/sessions
-     * @return
+     * @return response result
      * @throws IOException
      */
     public String getAllSessions(String connectUrl) throws IOException{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpGet httpGet = new HttpGet(connectUrl);
         httpGet.addHeader("Content-Type", "application/json");
-
-        CloseableHttpResponse response = httpclient.execute(httpGet);
-        try {
-            HttpEntity entity = response.getEntity();
-            return SparkHelper.getResultFromInputStream(entity.getContent());
-        }finally {
-            response.close();
+        try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
+            return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 
     /**
      * create new session
      * @param connectUrl : eg http://localhost:8998/sessions
-     * @param kind : spark or pyspark
-     * @return json string result
+     * @param kind : spark or pyspark or sparkr
+     * @return response result
      * @throws IOException
      */
     public String createNewSession(String connectUrl, String kind) throws IOException{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpPost httpPost = new HttpPost(connectUrl);
         httpPost.addHeader("Content-Type", "application/json");
         String jsonString = "{\"kind\" : \"" + kind + "\"}";
         StringEntity postingString =new StringEntity(jsonString);
         httpPost.setEntity(postingString);
 
-        CloseableHttpResponse response = httpclient.execute(httpPost);
-        try {
-            HttpEntity entity = response.getEntity();
-            return SparkHelper.getResultFromInputStream(entity.getContent());
-        }finally {
-            response.close();
+        try(CloseableHttpResponse response = httpclient.execute(httpPost)) {
+            return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 
     /**
      * @param connectUrl : eg http://localhost:8998/sessions
      * @param sessionId : session Id
-     * @return
+     * @return response result
      * @throws IOException
      */
     public String getSessionState(String connectUrl, String sessionId) throws IOException{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpGet httpGet = new HttpGet(connectUrl + "/" + sessionId);
         httpGet.addHeader("Content-Type", "application/json");
 
-        CloseableHttpResponse response = httpclient.execute(httpGet);
-        try {
-            HttpEntity entity = response.getEntity();
-            return SparkHelper.getResultFromInputStream(entity.getContent());
-        }finally {
-            response.close();
+        try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
+            return SparkHelper.getResultFromHttpResponse(response);
+        }
+    }
+
+    /**
+     * @param connectUrl : eg http://localhost:8998/sessions
+     * @param sessionId  : session Id
+     * @return response result
+     * @throws IOException
+     */
+    public String getSessionFullLog(String connectUrl, String sessionId) throws IOException{
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
+        HttpGet httpGet = new HttpGet(connectUrl + "/" + sessionId + "/log?from=0&size=" + Integer.MAX_VALUE);
+        httpGet.addHeader("Content-Type", "application/json");
+
+        try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
+            return SparkHelper.getResultFromHttpResponse(response);
+        }
+    }
+
+    /**
+     * Return all the statements in a session.
+     * @param connectUrl
+     * @param sessionId
+     * @return response result
+     * @throws IOException
+     */
+    public String getAllStatementInSession(String connectUrl, String sessionId) throws IOException{
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
+        HttpGet httpGet = new HttpGet(connectUrl + "/" + sessionId + "/statements");
+        httpGet.addHeader("Content-Type", "application/json");
+
+        try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
+            return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 
@@ -99,23 +132,19 @@ public class SparkInteractiveSessions {
      * @param connectUrl : eg http://localhost:8998/sessions
      * @param sessionId : session id
      * @param code scala or python code segment
-     * @return
+     * @return response result
      * @throws IOException
      */
     public String executeInSession(String connectUrl, String sessionId, String code)throws IOException{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpPost httpPost = new HttpPost(connectUrl + "/" + sessionId + "/statements");
         httpPost.addHeader("Content-Type", "application/json");
         String jsonString = "{\"code\" : \"" + code + "\"}";
         StringEntity postingString =new StringEntity(jsonString);
         httpPost.setEntity(postingString);
 
-        CloseableHttpResponse response = httpclient.execute(httpPost);
-        try {
-            HttpEntity entity = response.getEntity();
-            return SparkHelper.getResultFromInputStream(entity.getContent());
-        }finally {
-            response.close();
+        try(CloseableHttpResponse response = httpclient.execute(httpPost)) {
+            return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 
@@ -124,20 +153,16 @@ public class SparkInteractiveSessions {
      * @param connectUrl eg http://localhost:8998/sessions
      * @param sessionId session id
      * @param statementId statement id
-     * @return
+     * @return response result
      * @throws IOException
      */
     public String getExecutionState(String connectUrl, String sessionId, String statementId)throws IOException{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpGet httpGet = new HttpGet(connectUrl + "/" + sessionId + "/statements/" + statementId);
         httpGet.addHeader("Content-Type", "application/json");
 
-        CloseableHttpResponse response = httpclient.execute(httpGet);
-        try {
-            HttpEntity entity = response.getEntity();
-            return SparkHelper.getResultFromInputStream(entity.getContent());
-        }finally {
-            response.close();
+        try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
+            return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 
@@ -145,20 +170,16 @@ public class SparkInteractiveSessions {
      * kill session
      * @param connectUrl : eg http://localhost:8998/sessions
      * @param sessionId : session id
-     * @return
+     * @return response result
      * @throws IOException
      */
     public String killSession(String connectUrl, String sessionId) throws IOException{
-        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpDelete httpDelete = new HttpDelete(connectUrl +  "/" + sessionId);
         httpDelete.addHeader("Content-Type", "application/json");
 
-        CloseableHttpResponse response = httpclient.execute(httpDelete);
-        try {
-            HttpEntity entity = response.getEntity();
-            return SparkHelper.getResultFromInputStream(entity.getContent());
-        }finally {
-            response.close();
+        try(CloseableHttpResponse response = httpclient.execute(httpDelete)) {
+            return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 }
