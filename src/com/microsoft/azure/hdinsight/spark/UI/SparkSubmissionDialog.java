@@ -14,6 +14,7 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.util.*;
 
 public class SparkSubmissionDialog extends JDialog {
 
@@ -177,19 +178,22 @@ public class SparkSubmissionDialog extends JDialog {
     }
 
     private void onOK() {
-//     add your code here
-//        try {
-//            SparkBatchSubmission.getInstance().setCredentialsProvider("admin", "HADFwfp543j95fpj8!");
-//            SparkSubmissionParameter parameter = new SparkSubmissionParameter("wasb://defaultcontainer@sparkwithlivy.blob.core.windows.net/user/spark/SimpleApp3.jar","SimpleApp");
-//            String result = SparkBatchSubmission.getInstance().createBatchSparkJob("https://sparkwithlivy10.hdinsight-stable.azure-test.net/livy/batches", parameter);
-//            result = SparkBatchSubmission.getInstance().getBatchSparkJobStatus("https://sparkwithlivy10.hdinsight-stable.azure-test.net/livy/batches", "10");
-//            result = SparkBatchSubmission.getInstance().getBatchJobFullLog("https://sparkwithlivy10.hdinsight-stable.azure-test.net/livy/batches", "10");
-//            String a = result;
-//        }
-//        catch (IOException exception){
-//
-//
-//        }
+
+        try {
+            SparkBatchSubmission.getInstance().setCredentialsProvider("admin", "Pa$$word123");
+            java.util.List<String> files = new ArrayList<String>();
+
+            files.add("wasb://sparktest@vstooleastustest.blob.core.windows.net/user/spark/README.md");
+            SparkSubmissionParameter parameter = new SparkSubmissionParameter("wasb://sparktest@vstooleastustest.blob.core.windows.net/user/spark/SimpleApp3.jar","SimpleApp", files);
+            // result = SparkBatchSubmission.getInstance().createBatchSparkJob("https://sparktest.hdinsight-stable.azure-test.net/livy/batches", parameter);
+            String result = SparkBatchSubmission.getInstance().getBatchSparkJobStatus("https://sparktest.hdinsight-stable.azure-test.net/livy/batches", "5");
+            result = SparkBatchSubmission.getInstance().getBatchJobFullLog("https://sparktest.hdinsight-stable.azure-test.net/livy/batches", "5");
+            String a = result;
+        }
+        catch (IOException exception){
+
+
+        }
 
         dispose();
     }

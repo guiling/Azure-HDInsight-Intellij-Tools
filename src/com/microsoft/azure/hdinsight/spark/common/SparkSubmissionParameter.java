@@ -20,6 +20,9 @@ package com.microsoft.azure.hdinsight.spark.common;
         name	            Name of the application	string
 */
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *For interactive spark job:
  *
@@ -43,10 +46,12 @@ public class SparkSubmissionParameter {
     private String file = "";
     private String className="";
 
+    private List<String> files;
 
-    public SparkSubmissionParameter(String file, String className){
+    public SparkSubmissionParameter(String file, String className, List<String>files){
         this.file = file;
         this.className = className;
+        this.files = files;
     }
 
     public String getFile() {
@@ -55,5 +60,9 @@ public class SparkSubmissionParameter {
 
     public String getClassName() {
         return className;
+    }
+
+    public List<String> getFiles(){
+        return files;
     }
 }

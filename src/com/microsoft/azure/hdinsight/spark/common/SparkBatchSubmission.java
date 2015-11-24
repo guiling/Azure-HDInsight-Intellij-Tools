@@ -69,8 +69,7 @@ public class SparkBatchSubmission {
         CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpPost httpPost = new HttpPost(connectUrl);
         httpPost.addHeader("Content-Type", "application/json");
-
-        // TODO : Support more parameters
+        
         String jsonString = new Gson().toJson(submissonParameter);
         StringEntity postingString =new StringEntity(jsonString);
         httpPost.setEntity(postingString);
