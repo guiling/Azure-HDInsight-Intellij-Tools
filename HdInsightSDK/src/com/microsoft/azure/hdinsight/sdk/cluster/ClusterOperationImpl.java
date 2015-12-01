@@ -15,10 +15,18 @@ import java.util.List;
  */
 public class ClusterOperationImpl implements IClusterOperation {
 
+    private final String VERSION =  "2015-03-01-preview";
+
+    /**
+     * list hdinsight cluster
+     * @param subscription
+     * @return cluster raw data info
+     * @throws IOException
+     */
     public List<ClusterRawInfo> listCluster(Subscription subscription) throws IOException{
         String response = AzureAADRequestHelper.executeRequest(
                 CommonConstant.managementUri,
-                "subscriptions/" + subscription.getSubscriptionId() + "/providers/Microsoft.HDInsight/clusters?api-version=2015-03-01-preview",
+                String.format("subscriptions/%s/providers/Microsoft.HDInsight/clusters?api-version=%s",subscription.getSubscriptionId(), VERSION),
                 null,
                 "GET",
                 null,
@@ -31,10 +39,17 @@ public class ClusterOperationImpl implements IClusterOperation {
         return clusterRawInfoList.getValue();
     }
 
+    /**
+     * get cluster configuration including http username, password, storage and additional storage account
+     * @param subscription
+     * @param clusterId
+     * @return cluster configuration info
+     * @throws IOException
+     */
     public ClusterConfiguration getClusterConfiguration(Subscription subscription, String clusterId) throws IOException{
         String response = AzureAADRequestHelper.executeRequest(
                 CommonConstant.managementUri,
-                clusterId.replaceAll("/+$", "") + "/configurations?api-version=2015-03-01-preview",
+                String.format("%s/configurations?api-version=%s", clusterId.replaceAll("/+$", ""), VERSION),
                 null,
                 "GET",
                 null,

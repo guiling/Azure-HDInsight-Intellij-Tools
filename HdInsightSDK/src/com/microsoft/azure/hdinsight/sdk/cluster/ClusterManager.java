@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 public class ClusterManager {
 
     private final int MAX_CONCURRENT = 5;
+    private final int TIME_OUT = 5 * 60;
+
     // Singleton Instance
     private static ClusterManager instance = null;
 
@@ -36,11 +38,33 @@ public class ClusterManager {
     }
 
 
-    public synchronized List<IClusterDetail> getHDInsightClusers(List<Subscription>subscriptions, RequestCallBack<Exception> callBack) throws InterruptedException{
+    /**
+     * get hdinsight detailed cluster info list
+     * @param subscriptions
+     * @param callBack
+     * @return detailed cluster info list
+     * @throws InterruptedException
+     */
+    public synchronized List<IClusterDetail> getHDInsightClusers(
+            List<Subscription>subscriptions,
+            RequestCallBack<Exception> callBack){
+
         return getClusterDetails(subscriptions, callBack);
     }
 
-    public synchronized List<IClusterDetail> getHDInsightClusersWithSpecificType(List<Subscription>subscriptions, ClusterType type, RequestCallBack<Exception> callBack) throws InterruptedException{
+    /**
+     * get hdinsight detailed cluster info list with specific cluster type
+     * @param subscriptions
+     * @param type
+     * @param callBack
+     * @return detailed cluster info list with specific cluster type
+     * @throws InterruptedException
+     */
+    public synchronized List<IClusterDetail> getHDInsightClusersWithSpecificType(
+            List<Subscription>subscriptions,
+            ClusterType type,
+            RequestCallBack<Exception> callBack){
+
         List<IClusterDetail> clusterDetailList = getClusterDetails(subscriptions, callBack);
         List<IClusterDetail> filterClusterDetailList = new ArrayList<>();
         for (IClusterDetail clusterDetail : clusterDetailList){
@@ -52,12 +76,13 @@ public class ClusterManager {
         return filterClusterDetailList;
     }
 
-    private List<IClusterDetail> getClusterDetails(List<Subscription> subscriptions, final RequestCallBack<Exception> callBack) throws InterruptedException {
+    private List<IClusterDetail> getClusterDetails(List<Subscription> subscriptions, final RequestCallBack<Exception> callBack) {
         ExecutorService taskExecutor = Executors.newFixedThreadPool(MAX_CONCURRENT);
         List<IClusterDetail> cachedClusterList = new ArrayList<>();
+        List<Exception> aggregateExceptions = new ArrayList<>();
 
         for(Subscription subscription : subscriptions){
-            taskExecutor.execute(new CommonRunnable<Subscription,IOException>(subscription) {
+            taskExecutor.execute(new CommonRunnable<Subscription, IOException>(subscription) {
                 @Override
                 public void runSpecificParameter(Subscription parameter) throws IOException {
                     IClusterOperation clusterOperation = new ClusterOperationImpl();
@@ -73,14 +98,26 @@ public class ClusterManager {
                 }
 
                 @Override
-                public void exceptionHandle(Exception e){
-                    callBack.execute(e);
+                public void exceptionHandle(Exception e) {
+                    synchronized (aggregateExceptions) {
+                        aggregateExceptions.add(e);
+                    }
                 }
             });
         }
 
         taskExecutor.shutdown();
-        taskExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        try {
+            taskExecutor.awaitTermination(TIME_OUT, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException exception){
+            aggregateExceptions.add(exception);
+        }
+
+        if(aggregateExceptions.size() > 0) {
+            callBack.execute(aggregateExceptions);
+        }
+
         return cachedClusterList;
     }
 }

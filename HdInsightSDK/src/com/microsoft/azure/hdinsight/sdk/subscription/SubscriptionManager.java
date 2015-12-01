@@ -2,7 +2,6 @@ package com.microsoft.azure.hdinsight.sdk.subscription;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import com.microsoft.azure.hdinsight.sdk.cluster.*;
 import com.microsoft.azure.hdinsight.sdk.common.AzureAADRequestHelper;
 import com.microsoft.azure.hdinsight.sdk.common.CommonConstant;
 import com.microsoft.azure.hdinsight.sdk.common.RestServiceManagerBaseImpl;
@@ -38,6 +37,13 @@ public class SubscriptionManager {
 
     }
 
+    /**
+     * get subscriptions based on AAD auth
+     * @return  azure subscriptions
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     public List<Subscription> getSubscriptions() throws IOException, InterruptedException, ExecutionException{
         List<Subscription> subscriptions = new ArrayList<>();
 
@@ -56,7 +62,6 @@ public class SubscriptionManager {
             }
         }
 
-        ClusterManager.getInstance().getHDInsightClusers(subscriptions, null);
         return subscriptions;
     }
 
@@ -79,7 +84,12 @@ public class SubscriptionManager {
         AuthenticationContext context = new AuthenticationContext(CommonConstant.authority);
 
         AuthenticationResult authenticationResult =
-                 context.acquireTokenInteractiveAsync(tenantId, CommonConstant.resource, CommonConstant.clientID, CommonConstant.redirectURI, CommonConstant.login_promteValue).get();
+                 context.acquireTokenInteractiveAsync(
+                         tenantId,
+                         CommonConstant.resource,
+                         CommonConstant.clientID,
+                         CommonConstant.redirectURI,
+                         CommonConstant.attemptnone_promoteValue).get();
 
         if(authenticationResult != null) {
             return getSubscriptionsUsingSpecificTenantToken(authenticationResult.getAccessToken());
@@ -107,14 +117,5 @@ public class SubscriptionManager {
         }
 
         return subscriptionList.getValue();
-    }
-
-    public static void main(String[] args){
-        try {
-            SubscriptionManager.getInstance().getSubscriptions();
-        }
-        catch (IOException e1){}
-        catch (InterruptedException e2){}
-        catch (ExecutionException e3){}
     }
 }

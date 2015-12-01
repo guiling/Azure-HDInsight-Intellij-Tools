@@ -17,6 +17,7 @@ public class ClusterDetail implements IClusterDetail {
     private final String DefaultFS = "fs.defaultFS";
     private final String FSDefaultName = "fs.default.name";
     private final String StorageAccountKeyPrefix = "fs.azure.account.key.";
+    private final String StorageAccountNamePattern = "^wasb://(.*)@(.*)$";
 
     private Subscription subscription;
     private ClusterRawInfo clusterRawInfo;
@@ -27,9 +28,9 @@ public class ClusterDetail implements IClusterDetail {
     private StorageAccount defaultStorageAccount;
     private List<StorageAccount> additionalStorageAccounts;
 
-    public ClusterDetail(Subscription pSubscription, ClusterRawInfo pClusterRawInfo){
-        this.subscription = pSubscription;
-        this.clusterRawInfo = pClusterRawInfo;
+    public ClusterDetail(Subscription paramSubscription, ClusterRawInfo paramClusterRawInfo){
+        this.subscription = paramSubscription;
+        this.clusterRawInfo = paramClusterRawInfo;
         ExtractInfoFromComputeProfile();
     }
 
@@ -38,7 +39,8 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public String getState(){
-        return this.clusterRawInfo.getProperties().getClusterState();
+        ClusterProperties clusterProperties = this.clusterRawInfo.getProperties();
+        return clusterProperties == null ? null : clusterProperties.getClusterState();
     }
 
     public String getLocation(){
@@ -50,7 +52,8 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public String getCreateDate() {
-        return this.clusterRawInfo.getProperties().getCreatedDate();
+        ClusterProperties clusterProperties = this.clusterRawInfo.getProperties();
+        return clusterProperties == null ? null : clusterProperties.getCreatedDate();
     }
 
     public ClusterType getType(){
@@ -59,7 +62,8 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public String getVersion(){
-        return this.clusterRawInfo.getProperties().getClusterVersion();
+        ClusterProperties clusterProperties = this.clusterRawInfo.getProperties();
+        return clusterProperties == null ? null : clusterProperties.getClusterVersion();
     }
 
     public Subscription getSubscription(){
@@ -87,7 +91,8 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public String getOSType(){
-        return this.clusterRawInfo.getProperties().getOsType();
+        ClusterProperties clusterProperties = this.clusterRawInfo.getProperties();
+        return clusterProperties == null ? null : clusterProperties.getOsType();
     }
 
     public StorageAccount getStorageAccount() throws HDIException{
@@ -118,14 +123,16 @@ public class ClusterDetail implements IClusterDetail {
                 clusterOperation.getClusterConfiguration(subscription, clusterRawInfo.getId());
         if(clusterConfiguration != null && clusterConfiguration.getConfigurations() != null){
             Configurations configurations = clusterConfiguration.getConfigurations();
-            if(configurations.getGateway() != null){
-                this.userName = configurations.getGateway().getUsername();
-                this.passWord = configurations.getGateway().getPassword();
+            Gateway gateway = configurations.getGateway();
+            if(gateway != null){
+                this.userName = gateway.getUsername();
+                this.passWord = gateway.getPassword();
             }
 
-            if(configurations.getCoresite() != null){
-                this.defaultStorageAccount = getDefaultStorageAccount(configurations.getCoresite());
-                this.additionalStorageAccounts = getAdditionalStorageAccounts(configurations.getCoresite());
+            Map<String,String> coresSiteMap = configurations.getCoresite();
+            if(coresSiteMap!= null){
+                this.defaultStorageAccount = getDefaultStorageAccount(coresSiteMap);
+                this.additionalStorageAccounts = getAdditionalStorageAccounts(coresSiteMap);
             }
         }
     }
@@ -168,7 +175,7 @@ public class ClusterDetail implements IClusterDetail {
 
         List<StorageAccount> storageAccounts = new ArrayList<>();
         for (Map.Entry<String, String> entry : coresiteMap.entrySet()){
-            if(entry.getKey().equals(DefaultFS) || entry.getKey().equals(FSDefaultName)){
+            if(entry.getKey().toLowerCase().equals(DefaultFS) || entry.getKey().toLowerCase().equals(FSDefaultName)){
                 continue;
             }
 
@@ -182,9 +189,9 @@ public class ClusterDetail implements IClusterDetail {
         return storageAccounts;
     }
 
-    private static String getStorageAccountName(String containerAddress){
-        String pattern = "^wasb://(.*)@(.*)$";
-        Pattern r = Pattern.compile(pattern);
+    private String getStorageAccountName(String containerAddress){
+
+        Pattern r = Pattern.compile(StorageAccountNamePattern);
         Matcher m = r.matcher(containerAddress);
         if(m.find())
         {
