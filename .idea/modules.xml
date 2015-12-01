@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AzureHDInsightIntelliJTools.iml" filepath="$PROJECT_DIR$/AzureHDInsightIntelliJTools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/HdInsightSDK/HdInsightSDK.iml" filepath="$PROJECT_DIR$/HdInsightSDK/HdInsightSDK.iml" />
     </modules>
   </component>
 </project>
