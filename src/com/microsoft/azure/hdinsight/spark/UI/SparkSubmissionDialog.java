@@ -181,7 +181,7 @@ public class SparkSubmissionDialog extends JDialog {
 
         try {
             SparkBatchSubmission.getInstance().setCredentialsProvider("admin", "Pa$$word123");
-            java.util.List<String> files = new ArrayList<String>();
+            java.util.List<String> files = new ArrayList<>();
 
             files.add("wasb://sparktest@vstooleastustest.blob.core.windows.net/user/spark/README.md");
             SparkSubmissionParameter parameter = new SparkSubmissionParameter("wasb://sparktest@vstooleastustest.blob.core.windows.net/user/spark/SimpleApp3.jar","SimpleApp", files);

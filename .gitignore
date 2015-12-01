@@ -1,2 +1,4 @@
-/.idea/*
 /out/*
+/.idea/dictionaries/*
+/.idea/codeStyleSettings.xml
+/.idea/workspace.xml
