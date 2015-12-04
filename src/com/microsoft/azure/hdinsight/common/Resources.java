@@ -9,5 +9,8 @@ import javax.swing.*;
  */
 public class Resources {
     public static final Icon Product = IconLoader.getIcon("/icons/Product.png");
-    public static final Icon Spark = IconLoader.getIcon("/icons/Spark.png");
+
+    public static final String RefreshIConPath = "/icons/Refresh.png";
+
+    public static final String HDInsightIConPath = "/icons/HdInsight.png";
 }
