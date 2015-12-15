@@ -4,8 +4,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
-import com.microsoft.azure.hdinsight.components.DefaultLoader;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
+import com.microsoft.azure.hdinsight.common.DefaultLoader;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public abstract class RefreshableNode extends Node {
 
     // Sub-classes are expected to override this method if they wish to
     // refresh items synchronously. The default implementation does nothing.
-    protected abstract void refreshItems() throws AzureCmdException;
+    protected abstract void refreshItems() throws HDExploreException;
 
     // Sub-classes are expected to override this method if they wish
     // to refresh items asynchronously. The default implementation simply
@@ -47,7 +47,7 @@ public abstract class RefreshableNode extends Node {
         try {
             refreshItems();
             future.set(getChildNodes());
-        } catch (AzureCmdException e) {
+        } catch (HDExploreException e) {
             future.setException(e);
         } finally {
             setLoading(false);

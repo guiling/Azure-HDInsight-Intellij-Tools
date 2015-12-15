@@ -2,7 +2,7 @@ package com.microsoft.azure.hdinsight.serverexplore.node;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
-import com.microsoft.azure.hdinsight.components.DefaultLoader;
+import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.serverexplore.collections.ObservableList;
 
 import java.beans.PropertyChangeListener;

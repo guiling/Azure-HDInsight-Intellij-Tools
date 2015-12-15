@@ -1,55 +1,49 @@
-package com.microsoft.azure.hdinsight.serverexplore.azurenode;
+package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
-/**
- * Created by joezhang on 15-12-2.
- */
-
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import com.microsoft.azure.hdinsight.serverexplore.AzureManagerImpl;
 import com.microsoft.azure.hdinsight.serverexplore.node.EventHelper;
 import com.microsoft.azure.hdinsight.serverexplore.node.Node;
 import com.microsoft.azure.hdinsight.serverexplore.node.RefreshableNode;
-import org.apache.commons.lang.NotImplementedException;
-import org.jetbrains.annotations.NotNull;
+import com.sun.istack.internal.NotNull;
 
-public abstract class AzureRefreshableNode extends RefreshableNode {
-    public AzureRefreshableNode(String id, String name, Node parent, String iconPath) {
+/**
+ * Created by guizha on 12/7/2015.
+ */
+public abstract class HDInsightRefreshNode extends RefreshableNode {
+    public HDInsightRefreshNode(String id, String name, Node parent, String iconPath) {
         super(id, name, parent, iconPath);
-    }
-
-    public AzureRefreshableNode(String id, String name, Node parent, String iconPath, boolean delayActionLoading) {
-        super(id, name, parent, iconPath, delayActionLoading);
     }
 
     @Override
     protected void refreshItems()
-            throws AzureCmdException {
+            throws HDExploreException {
         EventHelper.runInterruptible(new EventHelper.EventHandler() {
             @Override
             public EventHelper.EventWaitHandle registerEvent()
-                    throws AzureCmdException {
+                    throws HDExploreException {
                 return AzureManagerImpl.getManager().registerSubscriptionsChanged();
             }
 
             @Override
             public void unregisterEvent(@NotNull EventHelper.EventWaitHandle waitHandle)
-                    throws AzureCmdException {
+                    throws HDExploreException {
                 AzureManagerImpl.getManager().unregisterSubscriptionsChanged(waitHandle);
             }
 
             @Override
             public void interruptibleAction(@NotNull EventHelper.EventStateHandle eventState)
-                    throws AzureCmdException {
+                    throws HDExploreException {
                 refresh(eventState);
             }
 
             @Override
             public void eventTriggeredAction()
-                    throws AzureCmdException {
+                    throws HDExploreException {
             }
         });
     }
 
     protected abstract void refresh(@NotNull EventHelper.EventStateHandle eventState)
-            throws AzureCmdException;
+            throws HDExploreException;
 }

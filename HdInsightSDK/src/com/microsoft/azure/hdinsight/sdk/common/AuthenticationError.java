@@ -5,6 +5,10 @@ package com.microsoft.azure.hdinsight.sdk.common;
  */
 public class AuthenticationError {
     private AuthenticationErrorDetail error;
+
+    public AuthenticationErrorDetail getErrorDetail(){
+        return error;
+    }
     public String getError(){
         return error.toString();
     }

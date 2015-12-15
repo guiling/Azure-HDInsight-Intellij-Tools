@@ -1,7 +1,7 @@
-package com.microsoft.azure.hdinsight.components;
+package com.microsoft.azure.hdinsight.common;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,8 +73,8 @@ public class UIHelperImpl implements UIHelper {
             ex.printStackTrace(new PrintWriter(sw));
             details = sw.toString();
 
-            if (ex instanceof AzureCmdException) {
-                String errorLog = ((AzureCmdException) ex).getErrorLog();
+            if (ex instanceof HDExploreException) {
+                String errorLog = ((HDExploreException) ex).getErrorLog();
                 if (errorLog != null) {
                     details = errorLog;
                 }

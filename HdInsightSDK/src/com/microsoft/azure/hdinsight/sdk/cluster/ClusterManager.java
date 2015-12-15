@@ -1,7 +1,8 @@
 package com.microsoft.azure.hdinsight.sdk.cluster;
 
+import com.microsoft.azure.hdinsight.sdk.common.AggregatedException;
 import com.microsoft.azure.hdinsight.sdk.common.CommonRunnable;
-import com.microsoft.azure.hdinsight.sdk.common.RequestCallBack;
+import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 
 import java.io.IOException;
@@ -41,31 +42,27 @@ public class ClusterManager {
     /**
      * get hdinsight detailed cluster info list
      * @param subscriptions
-     * @param callBack
      * @return detailed cluster info list
-     * @throws InterruptedException
+     * @throws AggregatedException
      */
-    public synchronized List<IClusterDetail> getHDInsightClusers(
-            List<Subscription>subscriptions,
-            RequestCallBack<Exception> callBack){
+    public synchronized List<IClusterDetail> getHDInsightClusers (
+            List<Subscription>subscriptions)throws AggregatedException {
 
-        return getClusterDetails(subscriptions, callBack);
+        return getClusterDetails(subscriptions);
     }
 
     /**
      * get hdinsight detailed cluster info list with specific cluster type
      * @param subscriptions
      * @param type
-     * @param callBack
      * @return detailed cluster info list with specific cluster type
-     * @throws InterruptedException
+     * @throws AggregatedException
      */
     public synchronized List<IClusterDetail> getHDInsightClusersWithSpecificType(
             List<Subscription>subscriptions,
-            ClusterType type,
-            RequestCallBack<Exception> callBack){
+            ClusterType type)throws AggregatedException {
 
-        List<IClusterDetail> clusterDetailList = getClusterDetails(subscriptions, callBack);
+        List<IClusterDetail> clusterDetailList = getClusterDetails(subscriptions);
         List<IClusterDetail> filterClusterDetailList = new ArrayList<>();
         for (IClusterDetail clusterDetail : clusterDetailList){
             if(clusterDetail.getType().equals(type)){
@@ -76,15 +73,15 @@ public class ClusterManager {
         return filterClusterDetailList;
     }
 
-    private List<IClusterDetail> getClusterDetails(List<Subscription> subscriptions, final RequestCallBack<Exception> callBack) {
+    private List<IClusterDetail> getClusterDetails(List<Subscription> subscriptions)throws AggregatedException {
         ExecutorService taskExecutor = Executors.newFixedThreadPool(MAX_CONCURRENT);
         List<IClusterDetail> cachedClusterList = new ArrayList<>();
         List<Exception> aggregateExceptions = new ArrayList<>();
 
         for(Subscription subscription : subscriptions){
-            taskExecutor.execute(new CommonRunnable<Subscription, IOException>(subscription) {
+            taskExecutor.execute(new CommonRunnable<Subscription, Exception>(subscription) {
                 @Override
-                public void runSpecificParameter(Subscription parameter) throws IOException {
+                public void runSpecificParameter(Subscription parameter) throws IOException,HDIException {
                     IClusterOperation clusterOperation = new ClusterOperationImpl();
                     List<ClusterRawInfo> clusterRawInfoList = clusterOperation.listCluster(parameter);
                     if (clusterRawInfoList != null) {
@@ -115,7 +112,7 @@ public class ClusterManager {
         }
 
         if(aggregateExceptions.size() > 0) {
-            callBack.execute(aggregateExceptions);
+            throw new AggregatedException(aggregateExceptions);
         }
 
         return cachedClusterList;

@@ -1,20 +1,30 @@
-package com.microsoft.azure.hdinsight.components;
+package com.microsoft.azure.hdinsight.common;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.LightVirtualFile;
+import com.microsoft.azure.hdinsight.sdk.storage.BlobContainer;
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
+import com.microsoft.azure.hdinsight.serverexplore.UI.BlobExplorerFileEditorProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 /**
  * Created by joezhang on 15-12-2.
  */
 public class IDEHelperImpl implements IDEHelper {
+    public static Key<StorageAccount> STORAGE_KEY = new Key<>("clientStorageAccount");
+
     @Override
     public void invokeLater(@NotNull Runnable runnable) {
         ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any());
@@ -138,7 +148,6 @@ public class IDEHelperImpl implements IDEHelper {
         return PropertiesComponent.getInstance((Project) projectObject).isValueSet(name);
     }
 
-    @Nullable
     @Override
     public String[] getProperties(@NotNull String name) {
         return PropertiesComponent.getInstance().getValues(name);
@@ -148,5 +157,101 @@ public class IDEHelperImpl implements IDEHelper {
     public void setProperties(@NotNull String name, @NotNull String[] value) {
         PropertiesComponent.getInstance().setValues(name, value);
         ApplicationManager.getApplication().saveSettings();
+    }
+
+    @Override
+    public void openItem(@NotNull Object projectObject,
+                          @Nullable StorageAccount storageAccount,
+                          @NotNull  BlobContainer item,
+                          @Nullable String itemType,
+                          @NotNull final String itemName,
+                          @Nullable final String iconName) {
+        LightVirtualFile itemVirtualFile = new LightVirtualFile(item.getName() + itemType);
+        itemVirtualFile.putUserData(BlobExplorerFileEditorProvider.CONTAINER_KEY, item);
+        itemVirtualFile.putUserData(STORAGE_KEY, storageAccount);
+
+        itemVirtualFile.setFileType(new FileType() {
+            @NotNull
+            @Override
+            public String getName() {
+                return itemName;
+            }
+
+            @NotNull
+            @Override
+            public String getDescription() {
+                return itemName;
+            }
+
+            @NotNull
+            @Override
+            public String getDefaultExtension() {
+                return "";
+            }
+
+            @Nullable
+            @Override
+            public Icon getIcon() {
+                return UIHelperImpl.loadIcon(iconName);
+            }
+
+            @Override
+            public boolean isBinary() {
+                return true;
+            }
+
+            @Override
+            public boolean isReadOnly() {
+                return false;
+            }
+
+            @Override
+            public String getCharset(@NotNull VirtualFile virtualFile, @NotNull byte[] bytes) {
+                return "UTF8";
+            }
+        });
+
+        openItem(projectObject, itemVirtualFile);
+    }
+
+    @Override
+    public void openItem(@NotNull final Object projectObject, @NotNull final Object itemVirtualFile) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                FileEditorManager.getInstance((Project) projectObject).openFile((VirtualFile) itemVirtualFile, true, true);
+            }
+        }, ModalityState.any());
+    }
+
+    @Override
+    public  Object getOpenedFile(@NotNull Object projectObject,
+                                 @NotNull StorageAccount storageAccount,
+                                 @NotNull BlobContainer item) {
+        FileEditorManager fileEditorManager = FileEditorManager.getInstance((Project) projectObject);
+
+        for (VirtualFile editedFile : fileEditorManager.getOpenFiles()) {
+            BlobContainer editedItem = editedFile.getUserData(BlobExplorerFileEditorProvider.CONTAINER_KEY);
+            StorageAccount editedStorageAccount = editedFile.getUserData(STORAGE_KEY);
+
+            if (editedStorageAccount != null
+                    && editedItem != null
+                    && editedStorageAccount.getStorageName().equals(storageAccount.getStorageName())
+                    && editedItem.getName().equals(item.getName())) {
+                return editedFile;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public void closeFile(@NotNull final Object projectObject, @NotNull final Object openedFile) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                FileEditorManager.getInstance((Project) projectObject).closeFile((VirtualFile) openedFile);
+            }
+        }, ModalityState.any());
     }
 }

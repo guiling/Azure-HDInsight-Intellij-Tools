@@ -2,7 +2,7 @@ package com.microsoft.azure.hdinsight.serverexplore.node;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 
 import java.util.EventListener;
 
@@ -26,13 +26,13 @@ public abstract class NodeActionListener implements EventListener {
     }
 
     protected abstract void actionPerformed(NodeActionEvent e)
-            throws AzureCmdException;
+            throws HDExploreException;
 
     public ListenableFuture<Void> actionPerformedAsync(NodeActionEvent e) {
         try {
             actionPerformed(e);
             return Futures.immediateFuture(null);
-        } catch (AzureCmdException ex) {
+        } catch (HDExploreException ex) {
             return Futures.immediateFailedFuture(ex);
         }
     }

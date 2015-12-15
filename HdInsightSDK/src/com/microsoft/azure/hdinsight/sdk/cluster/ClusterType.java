@@ -5,9 +5,9 @@ package com.microsoft.azure.hdinsight.sdk.cluster;
  */
 
 public enum ClusterType {
-    Unkown,
-    Hadoop,
-    HBase,
-    Storm,
-    Spark
+    unkown,
+    hadoop,
+    hbase,
+    storm,
+    spark
 };
