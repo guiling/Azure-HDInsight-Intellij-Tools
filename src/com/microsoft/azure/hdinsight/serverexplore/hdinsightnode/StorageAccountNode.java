@@ -33,9 +33,8 @@ public class StorageAccountNode extends HDInsightRefreshNode {
     protected void refresh(@NotNull EventHelper.EventStateHandle eventState)
             throws HDExploreException {
         removeAllChildNodes();
-        IStorageClient storageClient = new StorageClientImpl();
         try {
-            List<BlobContainer> containerList = storageClient.getBlobContainers(storageAccount);
+            List<BlobContainer> containerList = StorageClientImpl.getInstance().getBlobContainers(storageAccount);
             for(BlobContainer blobContainer : containerList){
                 addChildNode(new BlobContainerNode(this, storageAccount, blobContainer));
             }

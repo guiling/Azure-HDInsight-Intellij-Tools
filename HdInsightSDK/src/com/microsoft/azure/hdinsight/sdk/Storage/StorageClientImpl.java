@@ -17,6 +17,23 @@ import java.util.*;
  * Created by guizha on 12/11/2015.
  */
 public class StorageClientImpl implements IStorageClient {
+    // Singleton Instance
+    private static StorageClientImpl instance = null;
+
+    public static StorageClientImpl getInstance() {
+        if(instance == null){
+            synchronized (StorageClientImpl.class){
+                if(instance == null){
+                    instance = new StorageClientImpl();
+                }
+            }
+        }
+
+        return instance;
+    }
+
+    private StorageClientImpl(){}
+
     public List<BlobContainer> getBlobContainers(StorageAccount storageAccount)
             throws HDIException {
 

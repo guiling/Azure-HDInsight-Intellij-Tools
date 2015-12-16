@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightVirtualFile;
 import com.microsoft.azure.hdinsight.sdk.storage.BlobContainer;
 import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
+import com.microsoft.azure.hdinsight.serverexplore.UI.BlobExplorerFileEditor;
 import com.microsoft.azure.hdinsight.serverexplore.UI.BlobExplorerFileEditorProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,12 +161,32 @@ public class IDEHelperImpl implements IDEHelper {
     }
 
     @Override
+    public void refreshBlobs(@NotNull final Object projectObject, @NotNull final StorageAccount storageAccount,
+                             @NotNull final BlobContainer container) {
+        ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
+            public void run() {
+                VirtualFile file = (VirtualFile) getOpenedFile(projectObject, storageAccount, container);
+                if (file != null) {
+                    final BlobExplorerFileEditor containerFileEditor = (BlobExplorerFileEditor) FileEditorManager.getInstance((Project) projectObject).getEditors(file)[0];
+                    ApplicationManager.getApplication().invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            containerFileEditor.fillGrid();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    @Override
     public void openItem(@NotNull Object projectObject,
                           @Nullable StorageAccount storageAccount,
                           @NotNull  BlobContainer item,
                           @Nullable String itemType,
                           @NotNull final String itemName,
-                          @Nullable final String iconName) {
+                          @Nullable final String iconPath) {
         LightVirtualFile itemVirtualFile = new LightVirtualFile(item.getName() + itemType);
         itemVirtualFile.putUserData(BlobExplorerFileEditorProvider.CONTAINER_KEY, item);
         itemVirtualFile.putUserData(STORAGE_KEY, storageAccount);
@@ -192,7 +213,7 @@ public class IDEHelperImpl implements IDEHelper {
             @Nullable
             @Override
             public Icon getIcon() {
-                return UIHelperImpl.loadIcon(iconName);
+                return PluginUtil.getIcon(iconPath);
             }
 
             @Override

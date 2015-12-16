@@ -8,6 +8,7 @@ import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
 import com.microsoft.azure.hdinsight.serverexplore.node.Node;
 import com.microsoft.azure.hdinsight.serverexplore.node.NodeActionEvent;
 import com.microsoft.azure.hdinsight.serverexplore.node.NodeActionListener;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -27,6 +28,13 @@ public class BlobContainerNode extends Node {
         this.blobContainer = blobContainer;
     }
 
+    public class RefreshAction extends NodeActionListener {
+        @Override
+        public void actionPerformed(NodeActionEvent e) {
+            DefaultLoader.getIdeHelper().refreshBlobs(getProject(), storageAccount, blobContainer);
+        }
+    }
+
     public class ViewBlobContainer extends NodeActionListener {
         @Override
         public void actionPerformed(NodeActionEvent e) {
@@ -37,9 +45,8 @@ public class BlobContainerNode extends Node {
     @Override
     protected void onNodeClick(NodeActionEvent e) {
         final Object openedFile = DefaultLoader.getIdeHelper().getOpenedFile(getProject(), storageAccount, blobContainer);
-
         if (openedFile == null) {
-            DefaultLoader.getIdeHelper().openItem(getProject(), storageAccount, blobContainer, " [Container]", "BlobContainer", "container.png");
+            DefaultLoader.getIdeHelper().openItem(getProject(), storageAccount, blobContainer, " [Container]", "BlobContainer", PluginUtil.BlobContainerIConPath);
         } else {
             DefaultLoader.getIdeHelper().openItem(getProject(), openedFile);
         }
@@ -48,6 +55,8 @@ public class BlobContainerNode extends Node {
     @Override
     protected Map<String, Class<? extends NodeActionListener>> initActions() {
         return ImmutableMap.of(
-                "View Blob Container", ViewBlobContainer.class);
+                "Refresh", RefreshAction.class,
+                "View Blob Container", ViewBlobContainer.class
+                );
     }
 }

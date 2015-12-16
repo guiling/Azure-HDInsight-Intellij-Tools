@@ -61,4 +61,6 @@ public interface IDEHelper {
                           @Nullable String itemType,
                           @NotNull final String itemName,
                           @Nullable final String iconName);
+    void refreshBlobs(@NotNull final Object projectObject, @NotNull final StorageAccount storageAccount,
+                      @NotNull final BlobContainer container);
 }
