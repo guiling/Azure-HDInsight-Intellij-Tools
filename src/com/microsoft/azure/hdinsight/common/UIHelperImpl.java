@@ -26,10 +26,10 @@ public class UIHelperImpl implements UIHelper {
                 String headerMessage = getHeaderMessage(message, ex, appendEx, suggestDetail);
 
                 String details = getDetails(ex);
-//
-//                ErrorMessageForm em = new ErrorMessageForm(title);
-//                em.showErrorMessageForm(headerMessage, details);
-//                em.show();
+
+                ErrorMessageForm em = new ErrorMessageForm(title);
+                em.showErrorMessageForm(headerMessage, details);
+                em.show();
             }
         });
     }
@@ -58,7 +58,7 @@ public class UIHelperImpl implements UIHelper {
 
         if (suggestDetail) {
             String separator = headerMessage.matches("^.*\\d$||^.*\\w$") ? ". " : " ";
-//            headerMessage = headerMessage + separator + "Click on '" + ErrorMessageForm.advancedInfoText + "' for detailed information on the cause of the error.";
+            headerMessage = headerMessage + separator + "Click on '" + ErrorMessageForm.advancedInfoText + "' for detailed information on the cause of the error.";
         }
 
         return headerMessage;

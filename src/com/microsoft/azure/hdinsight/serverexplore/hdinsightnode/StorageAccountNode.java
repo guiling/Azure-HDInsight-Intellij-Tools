@@ -40,9 +40,7 @@ public class StorageAccountNode extends HDInsightRefreshNode {
             }
         }
         catch (HDIException hdiException){
-            DefaultLoader.getUIHelper().showException(
-                    "Failed to list blob containers.", hdiException,
-                    "HDInsight Explorer", false, true);
+           throw new HDExploreException(hdiException.getMessage(), hdiException);
         }
     }
 }

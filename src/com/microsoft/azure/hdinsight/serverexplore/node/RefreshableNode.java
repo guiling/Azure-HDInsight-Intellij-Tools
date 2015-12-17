@@ -80,15 +80,10 @@ public abstract class RefreshableNode extends Node {
                                 DefaultLoader.getIdeHelper().invokeLater(new Runnable() {
                                     @Override
                                     public void run() {
-                                        node.setName(nodeName);
-
                                         if (throwable != null) {
-                                            DefaultLoader.getUIHelper().showException("An error occurred while attempting " +
-                                                            "to load " + node.getName() + ".",
-                                                    throwable,
-                                                    "MS Services - Error Loading " + node.getName(),
-                                                    false,
-                                                    true);
+                                            node.setName(String.format("%s (Error)",nodeName));
+                                        }else {
+                                            node.setName(nodeName);
                                         }
                                     }
                                 });
