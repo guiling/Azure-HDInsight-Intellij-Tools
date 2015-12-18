@@ -14,6 +14,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
+import com.microsoft.azure.hdinsight.serverexplore.UI.AddNewClusterFrom;
 import com.microsoft.azure.hdinsight.serverexplore.UI.ManageSubscriptionForm;
 import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
 import com.microsoft.azure.hdinsight.serverexplore.collections.ListChangeListener;
@@ -303,6 +304,13 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
                         @Override
                         public void actionPerformed(AnActionEvent anActionEvent) {
                             ManageSubscriptionForm form = new ManageSubscriptionForm(anActionEvent.getProject());
+                            form.show();
+                        }
+                    },
+                    new AnAction("Add New Cluster", "Add New Cluster", AllIcons.Ide.Link) {
+                        @Override
+                        public void actionPerformed(AnActionEvent anActionEvent) {
+                            AddNewClusterFrom form = new AddNewClusterFrom((anActionEvent.getProject()));
                             form.show();
                         }
                     });
