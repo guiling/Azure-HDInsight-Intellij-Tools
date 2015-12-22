@@ -1,2 +1,2 @@
 # Azure-HDInsight-Intellij-Tools
-Azure hdinsight Intellij plugin 
+Azure HDInsight Intellij plugin 
