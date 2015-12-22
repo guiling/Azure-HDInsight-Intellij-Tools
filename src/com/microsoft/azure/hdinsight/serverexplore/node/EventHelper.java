@@ -1,7 +1,7 @@
 package com.microsoft.azure.hdinsight.serverexplore.node;
 
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
-import com.microsoft.azure.hdinsight.components.DefaultLoader;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
+import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Semaphore;
@@ -16,20 +16,20 @@ public class EventHelper {
     }
 
     public interface EventWaitHandle {
-        void waitEvent(@NotNull Runnable callback) throws AzureCmdException;
+        void waitEvent(@NotNull Runnable callback) throws HDExploreException;
     }
 
     public interface EventHandler {
         EventWaitHandle registerEvent()
-                throws AzureCmdException;
+                throws HDExploreException;
 
         void unregisterEvent(@NotNull EventWaitHandle waitHandle)
-                throws AzureCmdException;
+                throws HDExploreException;
 
         void interruptibleAction(@NotNull EventStateHandle eventState)
-                throws AzureCmdException;
+                throws HDExploreException;
 
-        void eventTriggeredAction() throws AzureCmdException;
+        void eventTriggeredAction() throws HDExploreException;
     }
 
     private static class EventSyncInfo implements EventStateHandle {
@@ -39,7 +39,7 @@ public class EventHelper {
         EventWaitHandle eventWaitHandle;
         boolean registeredEvent = false;
         boolean eventTriggered = false;
-        AzureCmdException exception;
+        HDExploreException exception;
 
         public boolean isEventTriggered() {
             synchronized (eventSync) {
@@ -49,7 +49,7 @@ public class EventHelper {
     }
 
     public static void runInterruptible(@NotNull final EventHandler eventHandler)
-            throws AzureCmdException {
+            throws HDExploreException {
         final EventSyncInfo eventSyncInfo = new EventSyncInfo();
 
         eventSyncInfo.eventWaitHandle = eventHandler.registerEvent();
@@ -71,7 +71,7 @@ public class EventHelper {
                             }
                         }
                     });
-                } catch (AzureCmdException ignored) {
+                } catch (HDExploreException ignored) {
                 }
             }
         });
@@ -88,7 +88,7 @@ public class EventHelper {
                             eventSyncInfo.semaphore.release();
                         }
                     }
-                } catch (AzureCmdException ex) {
+                } catch (HDExploreException ex) {
                     synchronized (eventSyncInfo.eventSync) {
                         if (eventSyncInfo.registeredEvent) {
                             eventSyncInfo.registeredEvent = false;

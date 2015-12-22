@@ -2,7 +2,7 @@ package com.microsoft.azure.hdinsight.serverexplore.action;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.hdinsight.serverexplore.UI.ManageSubscriptionForm;
-import com.microsoft.azure.hdinsight.serverexplore.azurenode.AzureServiceModule;
+import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
 import com.microsoft.azure.hdinsight.serverexplore.node.Name;
 import com.microsoft.azure.hdinsight.serverexplore.node.NodeActionEvent;
 import com.microsoft.azure.hdinsight.serverexplore.node.NodeActionListener;
@@ -12,9 +12,9 @@ import com.microsoft.azure.hdinsight.serverexplore.node.NodeActionListener;
  */
 @Name("Manage Subscriptions")
 public class ManageSubscriptionsAction extends NodeActionListener {
-    private AzureServiceModule azureServiceModule;
+    private HDInsightRootModule azureServiceModule;
 
-    public ManageSubscriptionsAction(AzureServiceModule azureServiceModule) {
+    public ManageSubscriptionsAction(HDInsightRootModule azureServiceModule) {
         this.azureServiceModule = azureServiceModule;
     }
 

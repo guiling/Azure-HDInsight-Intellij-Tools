@@ -10,7 +10,7 @@ public class Subscription {
     private String subscriptionId;
     private SubscriptionPolicies subscriptionPolicies;
     private String accessToken;
-    private boolean selected;
+    private boolean selected = true;
 
     public String getDisplayName(){
         return displayName;

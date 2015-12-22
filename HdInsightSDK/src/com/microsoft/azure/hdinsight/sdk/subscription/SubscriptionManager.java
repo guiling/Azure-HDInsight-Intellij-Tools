@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.microsoft.azure.hdinsight.sdk.common.*;
 import com.microsoftopentechnologies.auth.AuthenticationContext;
 import com.microsoftopentechnologies.auth.AuthenticationResult;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -72,7 +74,7 @@ public class SubscriptionManager {
                         CommonConstant.resource,
                         CommonConstant.clientID,
                         CommonConstant.redirectURI,
-                        CommonConstant.attemptnone_promoteValue).get();
+                        CommonConstant.refreshsession).get();
 
         if(authenticationResult != null) {
             return getSubscriptions(authenticationResult.getAccessToken());
@@ -96,20 +98,22 @@ public class SubscriptionManager {
                 null,
                 accessToken,
                 new RestServiceManagerBaseImpl(){});
-        try {
-            Type listType = new TypeToken<SubscriptionList>() {}.getType();
-            SubscriptionList subscriptionList = new Gson().fromJson(response, listType);
-            // set access token for each subscription
-            for(Subscription subscription : subscriptionList.getValue()){
-                subscription.setAccessToken(accessToken);
-            }
 
-            return subscriptionList.getValue();
-        }catch (Exception e){
-            Type errorType = new TypeToken<AuthenticationError>() {}.getType();
-            AuthenticationError authenticationError = new Gson().fromJson(response, errorType);
-            throw new HDIException(authenticationError.getError());
-        }
+        return new AuthenticationErrorHandler<List<Subscription>>(){
+            @Override
+            public List<Subscription> execute(String response){
+                Type listType = new TypeToken<SubscriptionList>() {}.getType();
+                SubscriptionList subscriptionList = new Gson().fromJson(response, listType);
+                // set access token for each subscription
+                if(subscriptionList != null && subscriptionList.getValue() != null) {
+                    for (Subscription subscription : subscriptionList.getValue()) {
+                        subscription.setAccessToken(accessToken);
+                    }
+                }
+
+                return subscriptionList == null ? null : subscriptionList.getValue();
+            }
+        }.run(response);
     }
 
     /**
@@ -118,7 +122,7 @@ public class SubscriptionManager {
      * @return azure tenants
      * @throws IOException
      */
-    public List<Tenant> getTenants(String accessToken) throws IOException{
+    public List<Tenant> getTenants(String accessToken) throws IOException, HDIException{
        String response = AzureAADRequestHelper.executeRequest(
                CommonConstant.managementUri,
                 "tenants?api-version=2014-04-01-preview",
@@ -128,8 +132,22 @@ public class SubscriptionManager {
                 accessToken,
                 new RestServiceManagerBaseImpl(){});
 
-        Type listType = new TypeToken<TenantList>(){}.getType();
-        TenantList tenantList = new Gson().fromJson(response, listType);
-        return tenantList.getValue();
+        return new AuthenticationErrorHandler<List<Tenant>>(){
+            @Override
+            public List<Tenant> execute(String response){
+                Type listType = new TypeToken<TenantList>(){}.getType();
+                TenantList tenantList = new Gson().fromJson(response, listType);
+                return tenantList.getValue();
+            }
+        }.run(response);
+    }
+
+    public static void main(String [] args){
+        try{
+            SubscriptionManager.getInstance().getSubscriptionsInteractively();
+        } catch (IOException e1){}
+        catch (HDIException e2){}
+        catch (InterruptedException e3){}
+        catch (ExecutionException e4){}
     }
 }

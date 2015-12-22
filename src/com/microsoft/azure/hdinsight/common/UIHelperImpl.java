@@ -1,7 +1,7 @@
-package com.microsoft.azure.hdinsight.components;
+package com.microsoft.azure.hdinsight.common;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,10 +26,10 @@ public class UIHelperImpl implements UIHelper {
                 String headerMessage = getHeaderMessage(message, ex, appendEx, suggestDetail);
 
                 String details = getDetails(ex);
-//
-//                ErrorMessageForm em = new ErrorMessageForm(title);
-//                em.showErrorMessageForm(headerMessage, details);
-//                em.show();
+
+                ErrorMessageForm em = new ErrorMessageForm(title);
+                em.showErrorMessageForm(headerMessage, details);
+                em.show();
             }
         });
     }
@@ -58,7 +58,7 @@ public class UIHelperImpl implements UIHelper {
 
         if (suggestDetail) {
             String separator = headerMessage.matches("^.*\\d$||^.*\\w$") ? ". " : " ";
-//            headerMessage = headerMessage + separator + "Click on '" + ErrorMessageForm.advancedInfoText + "' for detailed information on the cause of the error.";
+            headerMessage = headerMessage + separator + "Click on '" + ErrorMessageForm.advancedInfoText + "' for detailed information on the cause of the error.";
         }
 
         return headerMessage;
@@ -73,8 +73,8 @@ public class UIHelperImpl implements UIHelper {
             ex.printStackTrace(new PrintWriter(sw));
             details = sw.toString();
 
-            if (ex instanceof AzureCmdException) {
-                String errorLog = ((AzureCmdException) ex).getErrorLog();
+            if (ex instanceof HDExploreException) {
+                String errorLog = ((HDExploreException) ex).getErrorLog();
                 if (errorLog != null) {
                     details = errorLog;
                 }
@@ -82,12 +82,6 @@ public class UIHelperImpl implements UIHelper {
         }
 
         return details;
-    }
-
-    @NotNull
-    public static ImageIcon loadIcon(@Nullable String name) {
-        java.net.URL url = UIHelperImpl.class.getResource("/com/microsoft/intellij/icons/" + name);
-        return new ImageIcon(url);
     }
 
     public static String readableFileSize(long size) {

@@ -1,5 +1,7 @@
-package com.microsoft.azure.hdinsight.components;
+package com.microsoft.azure.hdinsight.common;
 
+import com.microsoft.azure.hdinsight.sdk.storage.BlobContainer;
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,4 +46,21 @@ public interface IDEHelper {
     String[] getProperties(@NotNull String name);
 
     void setProperties(@NotNull String name, @NotNull String[] value);
+
+    void closeFile(@NotNull final Object projectObject, @NotNull final Object openedFile);
+
+    Object getOpenedFile(@NotNull Object projectObject,
+                         @NotNull StorageAccount storageAccount,
+                         @NotNull BlobContainer item);
+
+    void openItem(@NotNull final Object projectObject, @NotNull final Object itemVirtualFile);
+
+    void openItem(@NotNull Object projectObject,
+                          @Nullable StorageAccount storageAccount,
+                          @NotNull  BlobContainer item,
+                          @Nullable String itemType,
+                          @NotNull final String itemName,
+                          @Nullable final String iconName);
+    void refreshBlobs(@NotNull final Object projectObject, @NotNull final StorageAccount storageAccount,
+                      @NotNull final BlobContainer container);
 }

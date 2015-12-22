@@ -1,5 +1,6 @@
 package com.microsoft.azure.hdinsight.sdk.cluster;
 
+import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 
 import java.io.IOException;
@@ -16,7 +17,7 @@ public interface IClusterOperation {
      * @return cluster raw data info
      * @throws IOException
      */
-    List<ClusterRawInfo> listCluster(Subscription subscription) throws IOException;
+    List<ClusterRawInfo> listCluster(Subscription subscription) throws IOException, HDIException;
 
     /**
      * get cluster configuration including http username, password, storage and additional storage account
@@ -25,5 +26,5 @@ public interface IClusterOperation {
      * @return cluster configuration info
      * @throws IOException
      */
-    ClusterConfiguration getClusterConfiguration(Subscription subscription, String clusterId) throws IOException;
+    ClusterConfiguration getClusterConfiguration(Subscription subscription, String clusterId) throws IOException, HDIException;
 }

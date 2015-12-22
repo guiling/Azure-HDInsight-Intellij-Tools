@@ -2,8 +2,8 @@ package com.microsoft.azure.hdinsight.serverexplore.node;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
-import com.microsoft.azure.hdinsight.components.DefaultLoader;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
+import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Callable;
@@ -37,7 +37,7 @@ public abstract class NodeActionListenerAsync extends NodeActionListener {
                     try {
                         actionPerformed(actionEvent);
                         future.set(null);
-                    } catch (AzureCmdException e) {
+                    } catch (HDExploreException e) {
                         future.setException(e);
                     }
                 }

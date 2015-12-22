@@ -10,7 +10,7 @@ public abstract class CommonRunnable<T,E extends Exception> implements Runnable 
         this.parameter = parameter;
     }
 
-    public abstract void runSpecificParameter(T parameter) throws E;
+    public abstract void runSpecificParameter(T parameter) throws  E;
 
     public abstract void exceptionHandle(Exception e);
 

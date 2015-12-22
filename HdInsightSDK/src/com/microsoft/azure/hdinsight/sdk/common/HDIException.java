@@ -9,11 +9,17 @@ import java.io.StringWriter;
 
 public class HDIException extends Exception {
     private String mErrorLog;
+    private int errorCode;
 
     public HDIException(String message) {
         super(message);
 
         mErrorLog = "";
+    }
+
+    public HDIException(String message, int errorCode){
+        super(message);
+        this.errorCode = errorCode;
     }
 
     public HDIException(String message, String errorLog) {
@@ -40,5 +46,9 @@ public class HDIException extends Exception {
 
     public String getErrorLog() {
         return mErrorLog;
+    }
+
+    public int getErrorCode(){
+        return errorCode;
     }
 }

@@ -27,6 +27,7 @@
       <!-- Module configurations -->
       <moduleType id="HDINSIGHT_MODULE" implementationClass="com.microsoft.azure.hdinsight.projects.HDInsightModuleType"/>
       <moduleBuilder builderClass="com.microsoft.azure.hdinsight.projects.HDInsightModuleBuilder"/>
+      <fileEditorProvider implementation="com.microsoft.azure.hdinsight.serverexplore.UI.BlobExplorerFileEditorProvider"/>
       <toolWindow
               anchor="left"
               factoryClass="com.microsoft.azure.hdinsight.serverexplore.ServerExplorerToolWindowFactory"

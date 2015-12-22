@@ -1,6 +1,5 @@
 package com.microsoft.azure.hdinsight.serverexplore;
 
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -9,17 +8,17 @@ import org.jetbrains.annotations.NotNull;
 public interface AADManager {
     @NotNull
     UserInfo authenticate(@NotNull String resource, @NotNull String title)
-            throws AzureCmdException;
+            throws HDExploreException;
 
     void authenticate(@NotNull UserInfo userInfo,
                       @NotNull String resource,
                       @NotNull String title)
-            throws AzureCmdException;
+            throws HDExploreException;
 
     @NotNull
     <T> T request(@NotNull UserInfo userInfo,
                   @NotNull String resource,
                   @NotNull String title,
                   @NotNull AADManagerRequestCallback<T> AADManagerRequestCallback)
-            throws AzureCmdException;
+            throws HDExploreException;
 }

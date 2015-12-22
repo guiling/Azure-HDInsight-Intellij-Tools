@@ -1,4 +1,4 @@
-package com.microsoft.azure.hdinsight.common;
+package com.microsoft.azure.hdinsight.serverexplore;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -6,26 +6,26 @@ import java.io.StringWriter;
 /**
  * Created by joezhang on 15-12-2.
  */
-public class AzureCmdException extends Exception {
+public class HDExploreException extends Exception {
     private String mErrorLog;
 
-    public AzureCmdException(String message) {
+    public HDExploreException(String message) {
         super(message);
 
         mErrorLog = "";
     }
 
-    public AzureCmdException(String message, String errorLog) {
+    public HDExploreException(String message, String errorLog) {
         super(message);
 
         mErrorLog = errorLog;
     }
 
-    public AzureCmdException(String message, Throwable throwable) {
+    public HDExploreException(String message, Throwable throwable) {
         super(message, throwable);
 
-        if (throwable instanceof AzureCmdException) {
-            mErrorLog = ((AzureCmdException) throwable).getErrorLog();
+        if (throwable instanceof HDExploreException) {
+            mErrorLog = ((HDExploreException) throwable).getErrorLog();
         } else {
             StringWriter sw = new StringWriter();
             PrintWriter writer = new PrintWriter(sw);

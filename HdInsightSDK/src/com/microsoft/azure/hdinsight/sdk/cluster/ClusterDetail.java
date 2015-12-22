@@ -1,5 +1,6 @@
 package com.microsoft.azure.hdinsight.sdk.cluster;
 
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 import java.io.IOException;
@@ -57,8 +58,8 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public ClusterType getType(){
-        ClusterType type =  ClusterType.valueOf(this.clusterRawInfo.getProperties().getClusterDefinition().getKind());
-        return type == null ? ClusterType.Unkown : type;
+        ClusterType type =  ClusterType.valueOf(this.clusterRawInfo.getProperties().getClusterDefinition().getKind().toLowerCase());
+        return type == null ? ClusterType.unkown : type;
     }
 
     public String getVersion(){
@@ -190,7 +191,6 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     private String getStorageAccountName(String containerAddress){
-
         Pattern r = Pattern.compile(StorageAccountNamePattern);
         Matcher m = r.matcher(containerAddress);
         if(m.find())

@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.microsoft.azure.hdinsight.common.AppSettingsNames;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
+import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.common.StringHelper;
-import com.microsoft.azure.hdinsight.components.DefaultLoader;
+import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.sdk.common.CommonConstant;
 import com.microsoftopentechnologies.auth.AuthenticationContext;
 import com.microsoftopentechnologies.auth.AuthenticationResult;
@@ -47,7 +46,7 @@ public class AADManagerImpl implements AADManager {
     private Map<UserInfo, ReentrantReadWriteLock> tempLockByUser;
 
     private AADManagerImpl() {
-        String json = DefaultLoader.getIdeHelper().getProperty(AppSettingsNames.AAD_AUTHENTICATION_RESULTS);
+        String json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AAD_AUTHENTICATION_RESULTS);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
@@ -55,7 +54,7 @@ public class AADManagerImpl implements AADManager {
                 }.getType();
                 authResultByUserResource = gson.fromJson(json, authResultsType);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(AppSettingsNames.AAD_AUTHENTICATION_RESULTS);
+                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AAD_AUTHENTICATION_RESULTS);
                 authResultByUserResource = new HashMap<>();
             }
         } else {
@@ -102,17 +101,17 @@ public class AADManagerImpl implements AADManager {
     @Override
     @NotNull
     public UserInfo authenticate(@NotNull String resource, @NotNull String title)
-            throws AzureCmdException {
+            throws HDExploreException {
         try {
             return authenticate(CommonConstant.commonTenantName, resource, title, PromptValue.login);
         } catch (ExecutionException e) {
-            throw new AzureCmdException("Error invoking the authentication process", e.getCause());
+            throw new HDExploreException("Error invoking the authentication process", e.getCause());
         } catch (Throwable e) {
-            if (e instanceof AzureCmdException) {
-                throw (AzureCmdException) e;
+            if (e instanceof HDExploreException) {
+                throw (HDExploreException) e;
             }
 
-            throw new AzureCmdException("Error invoking the authentication process", e);
+            throw new HDExploreException("Error invoking the authentication process", e);
         }
     }
 
@@ -120,7 +119,7 @@ public class AADManagerImpl implements AADManager {
     public void authenticate(@NotNull UserInfo userInfo,
                              @NotNull String resource,
                              @NotNull String title)
-            throws AzureCmdException {
+            throws HDExploreException {
         authenticateWithInteractiveToken(userInfo, resource, title);
     }
 
@@ -130,7 +129,7 @@ public class AADManagerImpl implements AADManager {
                          @NotNull String resource,
                          @NotNull String title,
                          @NotNull AADManagerRequestCallback<T> AADManagerRequestCallback)
-            throws AzureCmdException {
+            throws HDExploreException {
         if (isAuthenticated(userInfo, resource)) {
             return authenticatedRequest(userInfo, resource, title, AADManagerRequestCallback);
         } else {
@@ -142,7 +141,7 @@ public class AADManagerImpl implements AADManager {
                                        @NotNull final String resource,
                                        @NotNull final String title,
                                        @NotNull final AADManagerRequestCallback<T> AADManagerRequestCallback)
-            throws AzureCmdException {
+            throws HDExploreException {
         AuthenticationResult authenticationResult = getAuthenticationResult(userInfo, resource);
 
         try {
@@ -150,13 +149,13 @@ public class AADManagerImpl implements AADManager {
         } catch (Throwable throwable) {
             if (isErrorResourceUnauthorized(throwable)) {
                 return unauthenticatedRequest(userInfo, resource, title, AADManagerRequestCallback);
-            } else if (throwable instanceof AzureCmdException) {
-                throw (AzureCmdException) throwable;
+            } else if (throwable instanceof HDExploreException) {
+                throw (HDExploreException) throwable;
             } else if (throwable instanceof ExecutionException) {
-                throw new AzureCmdException(throwable.getCause().getMessage(), throwable.getCause());
+                throw new HDExploreException(throwable.getCause().getMessage(), throwable.getCause());
             }
 
-            throw new AzureCmdException(throwable.getMessage(), throwable);
+            throw new HDExploreException(throwable.getMessage(), throwable);
         }
     }
 
@@ -164,7 +163,7 @@ public class AADManagerImpl implements AADManager {
                                          @NotNull String resource,
                                          @NotNull String title,
                                          @NotNull AADManagerRequestCallback<T> AADManagerRequestCallback)
-            throws AzureCmdException {
+            throws HDExploreException {
         if (hasRefreshAuthResult(userInfo)) {
             authenticateWithRefreshToken(userInfo, resource, title);
         } else {
@@ -177,7 +176,7 @@ public class AADManagerImpl implements AADManager {
     private <T> T requestWithAuthenticationResult(@NotNull UserInfo userInfo,
                                                   @NotNull String resource,
                                                   @NotNull AADManagerRequestCallback<T> AADManagerRequestCallback)
-            throws AzureCmdException {
+            throws HDExploreException {
         AuthenticationResult authResult = getAuthenticationResult(userInfo, resource);
 
         return requestWithAuthenticationResult(AADManagerRequestCallback, authResult);
@@ -185,26 +184,26 @@ public class AADManagerImpl implements AADManager {
 
     private <T> T requestWithAuthenticationResult(@NotNull AADManagerRequestCallback<T> AADManagerRequestCallback,
                                                   @NotNull AuthenticationResult authResult)
-            throws AzureCmdException {
+            throws HDExploreException {
 
 
         try {
             return AADManagerRequestCallback.execute(authResult.getAccessToken());
         } catch (Throwable throwable) {
-            if (throwable instanceof AzureCmdException) {
-                throw (AzureCmdException) throwable;
+            if (throwable instanceof HDExploreException) {
+                throw (HDExploreException) throwable;
             } else if (throwable instanceof ExecutionException) {
-                throw new AzureCmdException(throwable.getCause().getMessage(), throwable.getCause());
+                throw new HDExploreException(throwable.getCause().getMessage(), throwable.getCause());
             }
 
-            throw new AzureCmdException(throwable.getMessage(), throwable);
+            throw new HDExploreException(throwable.getMessage(), throwable);
         }
     }
 
     private void authenticateWithRefreshToken(
             @NotNull UserInfo userInfo,
             @NotNull String resource,
-            @NotNull String title) throws AzureCmdException {
+            @NotNull String title) throws HDExploreException {
         // acquire token via refresh token
 
         // Now there might be multiple concurrent requests all of which are likely
@@ -242,7 +241,7 @@ public class AADManagerImpl implements AADManager {
                             authResult.getUserInfo().getUniqueName());
 
                     if (!userInfo.equals(userInfo2)) {
-                        throw new AzureCmdException("Invalid User Information retrieved");
+                        throw new HDExploreException("Invalid User Information retrieved");
                     }
 
                     setAuthenticationResult(userInfo, resource, authResult);
@@ -255,12 +254,12 @@ public class AADManagerImpl implements AADManager {
         } catch (Throwable t) {
             if (isErrorTokenUnauthorized(t)) {
                 authenticateWithInteractiveToken(userInfo, resource, title);
-            } else if (t instanceof AzureCmdException) {
-                throw (AzureCmdException) t;
+            } else if (t instanceof HDExploreException) {
+                throw (HDExploreException) t;
             } else if (t instanceof ExecutionException) {
-                throw new AzureCmdException("Error invoking the authentication process with refresh token", t.getCause());
+                throw new HDExploreException("Error invoking the authentication process with refresh token", t.getCause());
             } else {
-                throw new AzureCmdException("Error invoking the authentication process with refresh token", t);
+                throw new HDExploreException("Error invoking the authentication process with refresh token", t);
             }
         } finally {
             // we release the lock before we do anything else as
@@ -273,7 +272,7 @@ public class AADManagerImpl implements AADManager {
     private void authenticateWithInteractiveToken(@NotNull UserInfo userInfo,
                                                   @NotNull String resource,
                                                   @NotNull String title)
-            throws AzureCmdException {
+            throws HDExploreException {
         // acquire token via interactive token
 
         // Now there might be multiple concurrent requests all of which are likely
@@ -318,12 +317,12 @@ public class AADManagerImpl implements AADManager {
 
                         if (!userInfo.equals(interactiveUserInfo)) {
                             //User could change the selected credentials, but we shouldn't allow this
-                            throw new AzureCmdException("Invalid User Information retrieved");
+                            throw new HDExploreException("Invalid User Information retrieved");
                         }
                     }
                 } catch (Throwable t) {
-                    if (t instanceof AzureCmdException) {
-                        throw (AzureCmdException) t;
+                    if (t instanceof HDExploreException) {
+                        throw (HDExploreException) t;
                     }
 
                     try {
@@ -333,16 +332,16 @@ public class AADManagerImpl implements AADManager {
 
                         if (!userInfo.equals(interactiveUserInfo)) {
                             //User could change the selected credentials, but we shouldn't allow this
-                            throw new AzureCmdException("Invalid User Information retrieved");
+                            throw new HDExploreException("Invalid User Information retrieved");
                         }
                     } catch (Throwable e) {
-                        if (e instanceof AzureCmdException) {
-                            throw (AzureCmdException) e;
+                        if (e instanceof HDExploreException) {
+                            throw (HDExploreException) e;
                         } else if (e instanceof ExecutionException) {
-                            throw new AzureCmdException("Error invoking the authentication process with interactive token", e.getCause());
+                            throw new HDExploreException("Error invoking the authentication process with interactive token", e.getCause());
                         }
 
-                        throw new AzureCmdException("Error invoking the authentication process with interactive token", e);
+                        throw new HDExploreException("Error invoking the authentication process with interactive token", e);
                     }
                 }
             }
@@ -363,7 +362,7 @@ public class AADManagerImpl implements AADManager {
                                   @NotNull String resource,
                                   @NotNull String title,
                                   @NotNull String promptValue)
-            throws IOException, ExecutionException, InterruptedException, AzureCmdException {
+            throws IOException, ExecutionException, InterruptedException, HDExploreException {
         AuthenticationContext context = null;
 
         try {
@@ -389,21 +388,21 @@ public class AADManagerImpl implements AADManager {
         }
     }
 
-    private static void validateAuthenticationResult(AuthenticationResult authResult) throws AzureCmdException {
+    private static void validateAuthenticationResult(AuthenticationResult authResult) throws HDExploreException {
         if (authResult == null) {
-            throw new AzureCmdException("Invalid Authentication data retrieved", "");
+            throw new HDExploreException("Invalid Authentication data retrieved", "");
         }
 
         String accessToken = authResult.getAccessToken();
 
         if (accessToken == null || accessToken.trim().isEmpty()) {
-            throw new AzureCmdException("Invalid access token retrieved", "");
+            throw new HDExploreException("Invalid access token retrieved", "");
         }
 
         com.microsoftopentechnologies.auth.UserInfo userInfo = authResult.getUserInfo();
 
         if (userInfo == null) {
-            throw new AzureCmdException("Invalid User Information retrieved", "");
+            throw new HDExploreException("Invalid User Information retrieved", "");
         }
 
         String uniqueName = userInfo.getUniqueName();
@@ -411,7 +410,7 @@ public class AADManagerImpl implements AADManager {
 
         if (uniqueName == null || uniqueName.trim().isEmpty() ||
                 tenantId == null || tenantId.trim().isEmpty()) {
-            throw new AzureCmdException("Invalid User Information retrieved", "");
+            throw new HDExploreException("Invalid User Information retrieved", "");
         }
     }
 
@@ -442,19 +441,19 @@ public class AADManagerImpl implements AADManager {
     @NotNull
     private AuthenticationResult getAuthenticationResult(@NotNull UserInfo userInfo,
                                                          @NotNull String resource)
-            throws AzureCmdException {
+            throws HDExploreException {
         ReentrantReadWriteLock userLock = getUserLock(userInfo, false);
         userLock.readLock().lock();
 
         try {
             if (!authResultByUserResource.containsKey(userInfo)) {
-                throw new AzureCmdException("No Authentication data for the specified User Information", "");
+                throw new HDExploreException("No Authentication data for the specified User Information", "");
             }
 
             Map<String, AuthenticationResult> authResults = authResultByUserResource.get(userInfo);
 
             if (!authResults.containsKey(resource)) {
-                throw new AzureCmdException("No Authentication data for the specified resource", "");
+                throw new HDExploreException("No Authentication data for the specified resource", "");
             }
 
             return authResults.get(resource);
@@ -466,7 +465,7 @@ public class AADManagerImpl implements AADManager {
     private void setAuthenticationResult(@NotNull UserInfo userInfo,
                                          @NotNull String resource,
                                          @NotNull AuthenticationResult authResult)
-            throws AzureCmdException {
+            throws HDExploreException {
         ReentrantReadWriteLock userLock = getUserLock(userInfo, true);
         userLock.writeLock().lock();
 
@@ -495,7 +494,7 @@ public class AADManagerImpl implements AADManager {
             Type authResultsType = new TypeToken<HashMap<UserInfo, Map<String, AuthenticationResult>>>() {
             }.getType();
             String json = gson.toJson(authResultByUserResource, authResultsType);
-            DefaultLoader.getIdeHelper().setProperty(AppSettingsNames.AAD_AUTHENTICATION_RESULTS, json);
+            DefaultLoader.getIdeHelper().setProperty(PluginUtil.AAD_AUTHENTICATION_RESULTS, json);
         } finally {
             userLock.writeLock().unlock();
         }
@@ -526,13 +525,13 @@ public class AADManagerImpl implements AADManager {
 
     @NotNull
     private AuthenticationResult getRefreshAuthResult(@NotNull UserInfo userInfo)
-            throws AzureCmdException {
+            throws HDExploreException {
         ReentrantReadWriteLock userLock = getUserLock(userInfo, false);
         userLock.readLock().lock();
 
         try {
             if (!refreshAuthResultByUser.containsKey(userInfo)) {
-                throw new AzureCmdException("No refresh Authentication data for the specified User Information", "");
+                throw new HDExploreException("No refresh Authentication data for the specified User Information", "");
             }
 
             return refreshAuthResultByUser.get(userInfo);
@@ -543,7 +542,7 @@ public class AADManagerImpl implements AADManager {
 
     @NotNull
     private ReentrantReadWriteLock getUserLock(@NotNull UserInfo userInfo, boolean createOnMissing)
-            throws AzureCmdException {
+            throws HDExploreException {
         Lock lock = createOnMissing ? authResultLock.writeLock() : authResultLock.readLock();
         lock.lock();
 
@@ -552,7 +551,7 @@ public class AADManagerImpl implements AADManager {
                 if (createOnMissing) {
                     authResultLockByUser.put(userInfo, new ReentrantReadWriteLock(false));
                 } else {
-                    throw new AzureCmdException("No Authentication data for the specified User Information", "");
+                    throw new HDExploreException("No Authentication data for the specified User Information", "");
                 }
             }
 

@@ -1,4 +1,4 @@
-package com.microsoft.azure.hdinsight.components;
+package com.microsoft.azure.hdinsight.common;
 
 import org.jetbrains.annotations.NotNull;
 

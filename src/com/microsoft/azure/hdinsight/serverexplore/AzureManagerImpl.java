@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.microsoft.azure.hdinsight.common.AppSettingsNames;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
+import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.common.StringHelper;
-import com.microsoft.azure.hdinsight.components.DefaultLoader;
+import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.sdk.common.CommonConstant;
 import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 import com.microsoft.azure.hdinsight.sdk.subscription.SubscriptionManager;
@@ -33,12 +32,12 @@ public class AzureManagerImpl implements AzureManager {
 
         @Override
         public void waitEvent(@NotNull Runnable callback)
-                throws AzureCmdException {
+                throws HDExploreException {
             try {
                 eventSignal.acquire();
                 callback.run();
             } catch (InterruptedException e) {
-                throw new AzureCmdException("Unable to aquire permit", e);
+                throw new HDExploreException("Unable to aquire permit", e);
             }
         }
 
@@ -102,7 +101,7 @@ public class AzureManagerImpl implements AzureManager {
     }
 
     @Override
-    public void authenticate() throws AzureCmdException {
+    public void authenticate() throws HDExploreException {
         final String managementUri = CommonConstant.managementUri;
 
         final UserInfo userInfo = aadManager.authenticate(managementUri, "Sign in to your Azure account");
@@ -123,7 +122,6 @@ public class AzureManagerImpl implements AzureManager {
             List<Subscription> subscriptionList = requestWithToken(tenantUser, new AzureManagerRequestCallback<List<Subscription>>() {
                 @Override
                 public List<Subscription> execute() throws Throwable {
-
                     String tenantAccessToken = getAccessToken(tenantUser);
                     return SubscriptionManager.getInstance().getSubscriptions(tenantAccessToken);
                 }
@@ -170,7 +168,7 @@ public class AzureManagerImpl implements AzureManager {
     @NotNull
     @Override
     public List<Subscription> getFullSubscriptionList()
-            throws AzureCmdException {
+            throws HDExploreException {
         authDataLock.readLock().lock();
 
         try {
@@ -189,7 +187,7 @@ public class AzureManagerImpl implements AzureManager {
     @NotNull
     @Override
     public List<Subscription> getSubscriptionList()
-            throws AzureCmdException {
+            throws HDExploreException {
         authDataLock.readLock().lock();
 
         try {
@@ -209,7 +207,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @Override
     public void setSelectedSubscriptions(@NotNull List<String> selectedList)
-            throws AzureCmdException {
+            throws HDExploreException {
         authDataLock.writeLock().lock();
 
         try {
@@ -229,7 +227,7 @@ public class AzureManagerImpl implements AzureManager {
     @NotNull
     @Override
     public EventHelper.EventWaitHandle registerSubscriptionsChanged()
-            throws AzureCmdException {
+            throws HDExploreException {
         subscriptionsChangedLock.writeLock().lock();
 
         try {
@@ -245,9 +243,9 @@ public class AzureManagerImpl implements AzureManager {
 
     @Override
     public void unregisterSubscriptionsChanged(@NotNull EventHelper.EventWaitHandle handle)
-            throws AzureCmdException {
+            throws HDExploreException {
         if (!(handle instanceof EventWaitHandleImpl)) {
-            throw new AzureCmdException("Invalid handle instance");
+            throw new HDExploreException("Invalid handle instance");
         }
 
         subscriptionsChangedLock.writeLock().lock();
@@ -262,7 +260,7 @@ public class AzureManagerImpl implements AzureManager {
     }
 
     private void loadSubscriptions() {
-        String json = DefaultLoader.getIdeHelper().getProperty(AppSettingsNames.AZURE_SUBSCRIPTIONS);
+        String json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AZURE_SUBSCRIPTIONS);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
@@ -270,7 +268,7 @@ public class AzureManagerImpl implements AzureManager {
                 }.getType();
                 subscriptions = gson.fromJson(json, subscriptionsType);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(AppSettingsNames.AZURE_SUBSCRIPTIONS);
+                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_SUBSCRIPTIONS);
             }
         } else {
             subscriptions = new HashMap<>();
@@ -285,20 +283,20 @@ public class AzureManagerImpl implements AzureManager {
 
 
     private void loadUserInfo() {
-        String json = DefaultLoader.getIdeHelper().getProperty(AppSettingsNames.AZURE_USER_INFO);
+        String json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AZURE_USER_INFO);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
                 userInfo = gson.fromJson(json, UserInfo.class);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(AppSettingsNames.AZURE_USER_INFO);
-                DefaultLoader.getIdeHelper().unsetProperty(AppSettingsNames.AZURE_USER_SUBSCRIPTIONS);
+                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_INFO);
+                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
             }
         } else {
-            DefaultLoader.getIdeHelper().unsetProperty(AppSettingsNames.AZURE_USER_SUBSCRIPTIONS);
+            DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
         }
 
-        json = DefaultLoader.getIdeHelper().getProperty(AppSettingsNames.AZURE_USER_SUBSCRIPTIONS);
+        json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
@@ -306,7 +304,7 @@ public class AzureManagerImpl implements AzureManager {
                 }.getType();
                 userInfoBySubscriptionId = gson.fromJson(json, userInfoBySubscriptionIdType);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(AppSettingsNames.AZURE_USER_SUBSCRIPTIONS);
+                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
             }
         } else {
             userInfoBySubscriptionId = new HashMap<>();
@@ -347,17 +345,17 @@ public class AzureManagerImpl implements AzureManager {
         Type subscriptionsType = new TypeToken<HashMap<String, Subscription>>() {
         }.getType();
         String json = gson.toJson(subscriptions, subscriptionsType);
-        DefaultLoader.getIdeHelper().setProperty(AppSettingsNames.AZURE_SUBSCRIPTIONS, json);
+        DefaultLoader.getIdeHelper().setProperty(PluginUtil.AZURE_SUBSCRIPTIONS, json);
     }
 
     private void storeUserInfo() {
         String json = gson.toJson(userInfo, UserInfo.class);
-        DefaultLoader.getIdeHelper().setProperty(AppSettingsNames.AZURE_USER_INFO, json);
+        DefaultLoader.getIdeHelper().setProperty(PluginUtil.AZURE_USER_INFO, json);
 
         Type userInfoBySubscriptionIdType = new TypeToken<HashMap<String, UserInfo>>() {
         }.getType();
         json = gson.toJson(userInfoBySubscriptionId, userInfoBySubscriptionIdType);
-        DefaultLoader.getIdeHelper().setProperty(AppSettingsNames.AZURE_USER_SUBSCRIPTIONS, json);
+        DefaultLoader.getIdeHelper().setProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS, json);
     }
 
     private void notifySubscriptionsChanged() {
@@ -399,7 +397,7 @@ public class AzureManagerImpl implements AzureManager {
     }
 
     private void setUserInfo(@NotNull String subscriptionId, @NotNull UserInfo userInfo)
-            throws AzureCmdException {
+            throws HDExploreException {
         authDataLock.readLock().lock();
 
         try {
@@ -466,7 +464,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @NotNull
     private String getAccessToken(@NotNull UserInfo userInfo)
-            throws AzureCmdException {
+            throws HDExploreException {
         authDataLock.readLock().lock();
 
         try {
@@ -475,7 +473,7 @@ public class AzureManagerImpl implements AzureManager {
 
             try {
                 if (!accessTokenByUser.containsKey(userInfo)) {
-                    throw new AzureCmdException("No access token for the specified User Information", "");
+                    throw new HDExploreException("No access token for the specified User Information", "");
                 }
 
                 return accessTokenByUser.get(userInfo);
@@ -489,7 +487,7 @@ public class AzureManagerImpl implements AzureManager {
 
     private void setAccessToken(@NotNull UserInfo userInfo,
                                 @NotNull String accessToken)
-            throws AzureCmdException {
+            throws HDExploreException {
         authDataLock.readLock().lock();
 
         try {
@@ -523,7 +521,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @NotNull
     private ReentrantReadWriteLock getSubscriptionLock(@NotNull String subscriptionId, boolean createOnMissing)
-            throws AzureCmdException {
+            throws HDExploreException {
         Lock lock = createOnMissing ? subscriptionMapLock.writeLock() : subscriptionMapLock.readLock();
         lock.lock();
 
@@ -532,7 +530,7 @@ public class AzureManagerImpl implements AzureManager {
                 if (createOnMissing) {
                     lockBySubscriptionId.put(subscriptionId, new ReentrantReadWriteLock(false));
                 } else {
-                    throw new AzureCmdException("No authentication information for the specified Subscription Id");
+                    throw new HDExploreException("No authentication information for the specified Subscription Id");
                 }
             }
 
@@ -545,7 +543,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @NotNull
     private ReentrantReadWriteLock getUserLock(@NotNull UserInfo userInfo, boolean createOnMissing)
-            throws AzureCmdException {
+            throws HDExploreException {
         Lock lock = createOnMissing ? userMapLock.writeLock() : userMapLock.readLock();
         lock.lock();
 
@@ -554,7 +552,7 @@ public class AzureManagerImpl implements AzureManager {
                 if (createOnMissing) {
                     lockByUser.put(userInfo, new ReentrantReadWriteLock(false));
                 } else {
-                    throw new AzureCmdException("No access token for the specified User Information");
+                    throw new HDExploreException("No access token for the specified User Information");
                 }
             }
 
@@ -581,7 +579,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @NotNull
     private <T> T requestWithToken(@NotNull final UserInfo userInfo, @NotNull final AzureManagerRequestCallback<T> azureManagerRequestCallback)
-            throws AzureCmdException {
+            throws HDExploreException {
                 AADManagerRequestCallback<T> aadRequestCB = new AADManagerRequestCallback<T>() {
                     @NotNull
                     @Override

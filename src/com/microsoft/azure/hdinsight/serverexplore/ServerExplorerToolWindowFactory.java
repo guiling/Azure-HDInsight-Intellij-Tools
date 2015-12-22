@@ -12,11 +12,9 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.microsoft.azure.hdinsight.common.AzureCmdException;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
-import com.microsoft.azure.hdinsight.common.Resources;
 import com.microsoft.azure.hdinsight.serverexplore.UI.ManageSubscriptionForm;
-import com.microsoft.azure.hdinsight.serverexplore.azurenode.AzureServiceModule;
+import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
 import com.microsoft.azure.hdinsight.serverexplore.collections.ListChangeListener;
 import com.microsoft.azure.hdinsight.serverexplore.collections.ListChangedEvent;
 import com.microsoft.azure.hdinsight.serverexplore.collections.ObservableList;
@@ -39,13 +37,13 @@ import java.util.Collection;
  */
 public class ServerExplorerToolWindowFactory implements ToolWindowFactory, PropertyChangeListener {
     private JTree tree;
-    private AzureServiceModule azureServiceModule;
+    private HDInsightRootModule azureServiceModule;
     private DefaultTreeModel treeModel;
 
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
         // initialize azure service module
-        azureServiceModule = new AzureServiceModule(project);
+        azureServiceModule = new HDInsightRootModule(project);
 
         // initialize with all the service modules
         treeModel = new DefaultTreeModel(initRoot());
@@ -72,7 +70,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
 
         try {
             azureServiceModule.registerSubscriptionsChanged();
-        } catch (AzureCmdException ignored) {
+        } catch (HDExploreException ignored) {
         }
     }
 
@@ -294,7 +292,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
             ToolWindowEx toolWindowEx = (ToolWindowEx) toolWindow;
 
             toolWindowEx.setTitleActions(
-                    new AnAction("Refresh", "Refresh Service List", PluginUtil.getIcon(Resources.RefreshIConPath)) {
+                    new AnAction("Refresh", "Refresh Service List", PluginUtil.getIcon(PluginUtil.RefreshIConPath)) {
                         @Override
                         public void actionPerformed(AnActionEvent event) {
                             azureServiceModule.load();

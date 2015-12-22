@@ -1,7 +1,10 @@
 package com.microsoft.azure.hdinsight.sdk.cluster;
 
+import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
 import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
+
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -36,4 +39,6 @@ public interface IClusterDetail {
     StorageAccount getStorageAccount() throws HDIException;
 
     List<StorageAccount> getAdditionalStorageAccounts();
+
+    void getConfigurationInfo() throws IOException, HDIException;
 }

@@ -5,10 +5,7 @@ package com.microsoft.azure.hdinsight;
  */
 
 import com.intellij.openapi.components.ApplicationComponent;
-import com.microsoft.azure.hdinsight.common.AppSettingsNames;
-import com.microsoft.azure.hdinsight.common.PluginUtil;
-import com.microsoft.azure.hdinsight.common.StringHelper;
-import com.microsoft.azure.hdinsight.components.*;
+import com.microsoft.azure.hdinsight.common.*;
 import com.microsoft.azure.hdinsight.serverexplore.NodeActionsMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,15 +45,15 @@ public class HDInsightToolsApplication extends ApplicationComponent.Adapter{
         // current subscriptions and iterate over that list to clear the auth tokens for those
         // subscriptions.
 
-        String currentPluginVersion = ideHelper.getProperty(AppSettingsNames.CURRENT_PLUGIN_VERSION);
+        String currentPluginVersion = ideHelper.getProperty(PluginUtil.CURRENT_PLUGIN_VERSION);
 
-        if (StringHelper.isNullOrWhiteSpace(currentPluginVersion)){
+        if (StringHelper.isNullOrWhiteSpace(currentPluginVersion)|| !PluginUtil.PLUGIN_VERSION.equals(currentPluginVersion)){
 
             String[] settings = new String[]{
-                    AppSettingsNames.AAD_AUTHENTICATION_RESULTS,
-                    AppSettingsNames.AZURE_SUBSCRIPTIONS,
-                    AppSettingsNames.AZURE_USER_INFO,
-                    AppSettingsNames.AZURE_USER_SUBSCRIPTIONS
+                    PluginUtil.AAD_AUTHENTICATION_RESULTS,
+                    PluginUtil.AZURE_SUBSCRIPTIONS,
+                    PluginUtil.AZURE_USER_INFO,
+                    PluginUtil.AZURE_USER_SUBSCRIPTIONS
             };
 
             for (String setting : settings) {
@@ -65,6 +62,6 @@ public class HDInsightToolsApplication extends ApplicationComponent.Adapter{
         }
 
         // save the current plugin version
-        ideHelper.setProperty(AppSettingsNames.CURRENT_PLUGIN_VERSION, PluginUtil.PLUGIN_VERSION);
+        ideHelper.setProperty(PluginUtil.CURRENT_PLUGIN_VERSION, PluginUtil.PLUGIN_VERSION);
     }
 }
