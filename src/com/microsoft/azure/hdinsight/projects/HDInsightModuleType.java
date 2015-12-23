@@ -2,6 +2,7 @@ package com.microsoft.azure.hdinsight.projects;
 
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +47,6 @@ public class HDInsightModuleType extends ModuleType<HDInsightModuleBuilder> {
 
     @Override
     public Icon getNodeIcon(@Deprecated boolean b) {
-        return PluginUtil.Product;
+        return PluginUtil.getIcon(CommonConst.ProductIConPath);
     }
 }

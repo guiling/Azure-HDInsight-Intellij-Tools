@@ -10,6 +10,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.LibrariesContainer;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.LibrariesContainerFactory;
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 
 import javax.swing.*;
@@ -57,7 +58,7 @@ public class HDInsightModuleBuilder extends JavaModuleBuilder implements ModuleB
 
     @Override
     public Icon getNodeIcon() {
-        return PluginUtil.Product;
+        return PluginUtil.getIcon(CommonConst.ProductIConPath);
     }
 
     @Override

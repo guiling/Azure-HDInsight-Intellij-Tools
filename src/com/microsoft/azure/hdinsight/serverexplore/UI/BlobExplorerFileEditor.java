@@ -12,6 +12,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.common.UIHelperImpl;
@@ -313,7 +314,7 @@ public class BlobExplorerFileEditor implements FileEditor {
                             for (BlobItem blobItem : blobItems) {
                                 if (blobItem instanceof BlobDirectory) {
                                     model.addRow(new Object[]{
-                                            PluginUtil.getIcon(PluginUtil.StorageAccountFoldIConPath),
+                                            PluginUtil.getIcon(CommonConst.StorageAccountFoldIConPath),
                                             blobItem.getName(),
                                             "",
                                             "",

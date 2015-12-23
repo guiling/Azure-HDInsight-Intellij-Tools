@@ -1,6 +1,7 @@
 package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
 import com.google.common.collect.ImmutableMap;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.sdk.storage.BlobContainer;
@@ -17,7 +18,7 @@ import java.util.Map;
  */
 public class BlobContainerNode extends Node {
     private static final String CONTAINER_MODULE_ID = BlobContainerNode.class.getName();
-    private static final String ICON_PATH = PluginUtil.BlobContainerIConPath;
+    private static final String ICON_PATH = CommonConst.BlobContainerIConPath;
 
     private StorageAccount storageAccount;
     private BlobContainer blobContainer;
@@ -46,7 +47,7 @@ public class BlobContainerNode extends Node {
     protected void onNodeClick(NodeActionEvent e) {
         final Object openedFile = DefaultLoader.getIdeHelper().getOpenedFile(getProject(), storageAccount, blobContainer);
         if (openedFile == null) {
-            DefaultLoader.getIdeHelper().openItem(getProject(), storageAccount, blobContainer, " [Container]", "BlobContainer", PluginUtil.BlobContainerIConPath);
+            DefaultLoader.getIdeHelper().openItem(getProject(), storageAccount, blobContainer, " [Container]", "BlobContainer", CommonConst.BlobContainerIConPath);
         } else {
             DefaultLoader.getIdeHelper().openItem(getProject(), openedFile);
         }

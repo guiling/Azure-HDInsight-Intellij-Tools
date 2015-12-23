@@ -3,7 +3,7 @@ package com.microsoft.azure.hdinsight.sdk.common;
 /**
  * Created by joezhang on 15-11-26.
  */
-    public class CommonConstant {
+public class CommonConstant {
     public static final String authority = "login.windows.net";
     public static final String commonTenantName = "common";
     public static final String resource = "https://management.core.windows.net/";

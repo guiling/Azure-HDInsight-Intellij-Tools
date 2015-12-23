@@ -1,5 +1,6 @@
 package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.sdk.storage.BlobContainer;
@@ -19,7 +20,7 @@ import java.util.List;
 
 public class StorageAccountNode extends HDInsightRefreshNode {
     private static final String STORAGE_ACCOUNT_MODULE_ID = StorageAccountNode.class.getName();
-    private static final String ICON_PATH = PluginUtil.StorageAccountIConPath;
+    private static final String ICON_PATH = CommonConst.StorageAccountIConPath;
 
     private StorageAccount storageAccount;
 

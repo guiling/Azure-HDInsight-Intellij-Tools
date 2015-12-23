@@ -1,6 +1,7 @@
 package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
 import com.intellij.ide.ui.AppearanceOptionsTopHitProvider;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterManager;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterType;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
@@ -24,7 +25,7 @@ import java.util.List;
  */
 public class HDInsightRootModule extends RefreshableNode {
     private static final String HDInsight_SERVICE_MODULE_ID = HDInsightRootModule.class.getName();
-    private static final String ICON_PATH = PluginUtil.HDInsightIConPath;
+    private static final String ICON_PATH = CommonConst.HDInsightIConPath;
     private static final String BASE_MODULE_NAME = "HDInsight";
 
     private Object project;

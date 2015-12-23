@@ -12,6 +12,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.serverexplore.UI.ManageSubscriptionForm;
 import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
@@ -292,7 +293,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
             ToolWindowEx toolWindowEx = (ToolWindowEx) toolWindow;
 
             toolWindowEx.setTitleActions(
-                    new AnAction("Refresh", "Refresh Service List", PluginUtil.getIcon(PluginUtil.RefreshIConPath)) {
+                    new AnAction("Refresh", "Refresh Service List", PluginUtil.getIcon(CommonConst.RefreshIConPath)) {
                         @Override
                         public void actionPerformed(AnActionEvent event) {
                             azureServiceModule.load();

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.common.StringHelper;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
@@ -260,7 +261,7 @@ public class AzureManagerImpl implements AzureManager {
     }
 
     private void loadSubscriptions() {
-        String json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AZURE_SUBSCRIPTIONS);
+        String json = DefaultLoader.getIdeHelper().getProperty(CommonConst.AZURE_SUBSCRIPTIONS);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
@@ -268,7 +269,7 @@ public class AzureManagerImpl implements AzureManager {
                 }.getType();
                 subscriptions = gson.fromJson(json, subscriptionsType);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_SUBSCRIPTIONS);
+                DefaultLoader.getIdeHelper().unsetProperty(CommonConst.AZURE_SUBSCRIPTIONS);
             }
         } else {
             subscriptions = new HashMap<>();
@@ -283,20 +284,20 @@ public class AzureManagerImpl implements AzureManager {
 
 
     private void loadUserInfo() {
-        String json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AZURE_USER_INFO);
+        String json = DefaultLoader.getIdeHelper().getProperty(CommonConst.AZURE_USER_INFO);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
                 userInfo = gson.fromJson(json, UserInfo.class);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_INFO);
-                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
+                DefaultLoader.getIdeHelper().unsetProperty(CommonConst.AZURE_USER_INFO);
+                DefaultLoader.getIdeHelper().unsetProperty(CommonConst.AZURE_USER_SUBSCRIPTIONS);
             }
         } else {
-            DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
+            DefaultLoader.getIdeHelper().unsetProperty(CommonConst.AZURE_USER_SUBSCRIPTIONS);
         }
 
-        json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
+        json = DefaultLoader.getIdeHelper().getProperty(CommonConst.AZURE_USER_SUBSCRIPTIONS);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
@@ -304,7 +305,7 @@ public class AzureManagerImpl implements AzureManager {
                 }.getType();
                 userInfoBySubscriptionId = gson.fromJson(json, userInfoBySubscriptionIdType);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS);
+                DefaultLoader.getIdeHelper().unsetProperty(CommonConst.AZURE_USER_SUBSCRIPTIONS);
             }
         } else {
             userInfoBySubscriptionId = new HashMap<>();
@@ -345,17 +346,17 @@ public class AzureManagerImpl implements AzureManager {
         Type subscriptionsType = new TypeToken<HashMap<String, Subscription>>() {
         }.getType();
         String json = gson.toJson(subscriptions, subscriptionsType);
-        DefaultLoader.getIdeHelper().setProperty(PluginUtil.AZURE_SUBSCRIPTIONS, json);
+        DefaultLoader.getIdeHelper().setProperty(CommonConst.AZURE_SUBSCRIPTIONS, json);
     }
 
     private void storeUserInfo() {
         String json = gson.toJson(userInfo, UserInfo.class);
-        DefaultLoader.getIdeHelper().setProperty(PluginUtil.AZURE_USER_INFO, json);
+        DefaultLoader.getIdeHelper().setProperty(CommonConst.AZURE_USER_INFO, json);
 
         Type userInfoBySubscriptionIdType = new TypeToken<HashMap<String, UserInfo>>() {
         }.getType();
         json = gson.toJson(userInfoBySubscriptionId, userInfoBySubscriptionIdType);
-        DefaultLoader.getIdeHelper().setProperty(PluginUtil.AZURE_USER_SUBSCRIPTIONS, json);
+        DefaultLoader.getIdeHelper().setProperty(CommonConst.AZURE_USER_SUBSCRIPTIONS, json);
     }
 
     private void notifySubscriptionsChanged() {

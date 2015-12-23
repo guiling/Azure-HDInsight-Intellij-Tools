@@ -23,7 +23,7 @@ public class HDInsightToolsApplication extends ApplicationComponent.Adapter{
     @Override
     @NotNull
     public String getComponentName() {
-        return PluginUtil.PLUGIN_NAME;
+        return CommonConst.PLUGIN_NAME;
     }
 
     @Override
@@ -45,15 +45,15 @@ public class HDInsightToolsApplication extends ApplicationComponent.Adapter{
         // current subscriptions and iterate over that list to clear the auth tokens for those
         // subscriptions.
 
-        String currentPluginVersion = ideHelper.getProperty(PluginUtil.CURRENT_PLUGIN_VERSION);
+        String currentPluginVersion = ideHelper.getProperty(CommonConst.CURRENT_PLUGIN_VERSION);
 
-        if (StringHelper.isNullOrWhiteSpace(currentPluginVersion)|| !PluginUtil.PLUGIN_VERSION.equals(currentPluginVersion)){
+        if (StringHelper.isNullOrWhiteSpace(currentPluginVersion)|| !CommonConst.PLUGIN_VERSION.equals(currentPluginVersion)){
 
             String[] settings = new String[]{
-                    PluginUtil.AAD_AUTHENTICATION_RESULTS,
-                    PluginUtil.AZURE_SUBSCRIPTIONS,
-                    PluginUtil.AZURE_USER_INFO,
-                    PluginUtil.AZURE_USER_SUBSCRIPTIONS
+                    CommonConst.AAD_AUTHENTICATION_RESULTS,
+                    CommonConst.AZURE_SUBSCRIPTIONS,
+                    CommonConst.AZURE_USER_INFO,
+                    CommonConst.AZURE_USER_SUBSCRIPTIONS
             };
 
             for (String setting : settings) {
@@ -62,6 +62,6 @@ public class HDInsightToolsApplication extends ApplicationComponent.Adapter{
         }
 
         // save the current plugin version
-        ideHelper.setProperty(PluginUtil.CURRENT_PLUGIN_VERSION, PluginUtil.PLUGIN_VERSION);
+        ideHelper.setProperty(CommonConst.CURRENT_PLUGIN_VERSION, CommonConst.PLUGIN_VERSION);
     }
 }

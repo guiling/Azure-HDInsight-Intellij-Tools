@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.common.StringHelper;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
@@ -46,7 +47,7 @@ public class AADManagerImpl implements AADManager {
     private Map<UserInfo, ReentrantReadWriteLock> tempLockByUser;
 
     private AADManagerImpl() {
-        String json = DefaultLoader.getIdeHelper().getProperty(PluginUtil.AAD_AUTHENTICATION_RESULTS);
+        String json = DefaultLoader.getIdeHelper().getProperty(CommonConst.AAD_AUTHENTICATION_RESULTS);
 
         if (!StringHelper.isNullOrWhiteSpace(json)) {
             try {
@@ -54,7 +55,7 @@ public class AADManagerImpl implements AADManager {
                 }.getType();
                 authResultByUserResource = gson.fromJson(json, authResultsType);
             } catch (JsonSyntaxException ignored) {
-                DefaultLoader.getIdeHelper().unsetProperty(PluginUtil.AAD_AUTHENTICATION_RESULTS);
+                DefaultLoader.getIdeHelper().unsetProperty(CommonConst.AAD_AUTHENTICATION_RESULTS);
                 authResultByUserResource = new HashMap<>();
             }
         } else {
@@ -494,7 +495,7 @@ public class AADManagerImpl implements AADManager {
             Type authResultsType = new TypeToken<HashMap<UserInfo, Map<String, AuthenticationResult>>>() {
             }.getType();
             String json = gson.toJson(authResultByUserResource, authResultsType);
-            DefaultLoader.getIdeHelper().setProperty(PluginUtil.AAD_AUTHENTICATION_RESULTS, json);
+            DefaultLoader.getIdeHelper().setProperty(CommonConst.AAD_AUTHENTICATION_RESULTS, json);
         } finally {
             userLock.writeLock().unlock();
         }
