@@ -18,7 +18,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="com.microsoft.azure:azure-storage:3.1.0" level="project" />
     <orderEntry type="module" module-name="HdInsightSDK" />
+    <orderEntry type="library" name="azure-activedirectory-interactive-auth-library-for-java" level="project" />
   </component>
 </module>

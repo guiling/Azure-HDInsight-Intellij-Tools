@@ -20,7 +20,6 @@ package com.microsoft.azure.hdinsight.spark.common;
         name	            Name of the application	string
 */
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

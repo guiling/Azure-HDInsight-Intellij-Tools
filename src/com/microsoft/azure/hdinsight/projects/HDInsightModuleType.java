@@ -1,12 +1,10 @@
 package com.microsoft.azure.hdinsight.projects;
 
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.openapi.module.ModuleType;
-import com.microsoft.azure.hdinsight.common.Resources;
+import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser;
+import com.microsoft.azure.hdinsight.common.CommonConst;
+import com.microsoft.azure.hdinsight.common.PluginUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -49,6 +47,6 @@ public class HDInsightModuleType extends ModuleType<HDInsightModuleBuilder> {
 
     @Override
     public Icon getNodeIcon(@Deprecated boolean b) {
-        return Resources.Product;
+        return PluginUtil.getIcon(CommonConst.ProductIConPath);
     }
 }

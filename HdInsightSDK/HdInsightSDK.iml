@@ -10,5 +10,6 @@
     <orderEntry type="library" name="azure-activedirectory-interactive-auth-library-for-java" level="project" />
     <orderEntry type="library" name="com.google.guava:guava:16.0" level="project" />
     <orderEntry type="library" name="com.google.code.gson:gson:2.4" level="project" />
+    <orderEntry type="library" name="com.microsoft.azure:azure-storage:3.1.0" level="project" />
   </component>
 </module>
