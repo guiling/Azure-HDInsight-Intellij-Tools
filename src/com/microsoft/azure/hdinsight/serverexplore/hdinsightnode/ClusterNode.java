@@ -15,7 +15,7 @@ import com.sun.istack.internal.NotNull;
  */
 public class ClusterNode extends HDInsightRefreshNode {
     private static final String CLUSTER_MODULE_ID = ClusterNode.class.getName();
-    private static final String ICON_PATH = CommonConst.ClusterIConPath;
+    private static final String ICON_PATH = CommonConst .ClusterIConPath;
 
     public ClusterNode(Node parent, IClusterDetail clusterDetail) {
         super(CLUSTER_MODULE_ID, clusterDetail.getName(), parent, ICON_PATH);

@@ -29,10 +29,16 @@ public class ClusterDetail implements IClusterDetail {
     private StorageAccount defaultStorageAccount;
     private List<StorageAccount> additionalStorageAccounts;
 
+    private boolean isConfigInfoAvailable = false;
+
     public ClusterDetail(Subscription paramSubscription, ClusterRawInfo paramClusterRawInfo){
         this.subscription = paramSubscription;
         this.clusterRawInfo = paramClusterRawInfo;
         ExtractInfoFromComputeProfile();
+    }
+
+    public boolean isConfigInfoAvailable(){
+        return isConfigInfoAvailable;
     }
 
     public String getName(){
@@ -119,6 +125,8 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public void getConfigurationInfo() throws IOException, HDIException{
+        isConfigInfoAvailable = true;
+
         IClusterOperation clusterOperation = new ClusterOperationImpl();
         ClusterConfiguration clusterConfiguration =
                 clusterOperation.getClusterConfiguration(subscription, clusterRawInfo.getId());

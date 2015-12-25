@@ -40,7 +40,7 @@ public class SparkBatchSubmission {
      * @param password : password
      */
     public void setCredentialsProvider(String username, String password){
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+        credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST,AuthScope.ANY_PORT), new UsernamePasswordCredentials(username, password));
     }
 
     /**
@@ -70,7 +70,7 @@ public class SparkBatchSubmission {
         HttpPost httpPost = new HttpPost(connectUrl);
         httpPost.addHeader("Content-Type", "application/json");
         
-        String jsonString = new Gson().toJson(submissonParameter);
+        String jsonString = new Gson().toJson(submissonParameter.getSparkSubmissionParameterMap());
         StringEntity postingString =new StringEntity(jsonString);
         httpPost.setEntity(postingString);
         try(CloseableHttpResponse response = httpclient.execute(httpPost)) {

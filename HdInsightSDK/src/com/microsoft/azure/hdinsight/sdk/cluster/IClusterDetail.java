@@ -12,6 +12,8 @@ import java.util.List;
  */
 public interface IClusterDetail {
 
+    boolean isConfigInfoAvailable();
+
     String getName();
 
     String getState();

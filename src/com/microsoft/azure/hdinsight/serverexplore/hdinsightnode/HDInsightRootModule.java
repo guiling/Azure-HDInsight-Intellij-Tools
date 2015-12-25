@@ -2,6 +2,7 @@ package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
 import com.intellij.ide.ui.AppearanceOptionsTopHitProvider;
 import com.microsoft.azure.hdinsight.common.CommonConst;
+import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterManager;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterType;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
@@ -17,6 +18,7 @@ import com.microsoft.azure.hdinsight.serverexplore.AzureManagerImpl;
 import com.microsoft.azure.hdinsight.serverexplore.node.EventHelper;
 import com.microsoft.azure.hdinsight.serverexplore.node.Node;
 import com.microsoft.azure.hdinsight.serverexplore.node.RefreshableNode;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -45,49 +47,13 @@ public class HDInsightRootModule extends RefreshableNode {
     @Override
     protected void refreshItems() throws HDExploreException {
         removeAllChildNodes();
-        List<Subscription> subscriptionList = AzureManagerImpl.getManager().getSubscriptionList();
-        List<IClusterDetail> clusterDetailList = null;
-        try{
-            clusterDetailList = ClusterManager.getInstance().getHDInsightClusersWithSpecificType(subscriptionList, ClusterType.spark);
-        }catch (AggregatedException aggregateException){
-           if (dealWithAggregatedException(aggregateException)) {
-               subscriptionList = AzureManagerImpl.getManager().getSubscriptionList();
-               try {
-                   clusterDetailList = ClusterManager.getInstance().getHDInsightClusersWithSpecificType(subscriptionList, ClusterType.spark);
-               } catch (Exception exception) {
-                   DefaultLoader.getUIHelper().showError("Failed to list HDInsight cluster", "List HDInsight Cluster");
-               }
-           }
-        }
+        List<IClusterDetail> clusterDetailList = HDInsightHelper.getInstance().getClusterDetails();
 
         if(clusterDetailList != null) {
             for (IClusterDetail clusterDetail : clusterDetailList) {
                 addChildNode(new ClusterNode(this, clusterDetail));
             }
         }
-    }
-
-    private boolean dealWithAggregatedException(AggregatedException aggregateException) {
-        boolean isReAuth = false;
-        for(Exception exception : aggregateException.getExceptionList()){
-            if(exception instanceof HDIException) {
-                if(((HDIException)exception).getErrorCode() == AuthenticationErrorHandler.AUTH_ERROR_CODE){
-                    try {
-                        AzureManager apiManager = AzureManagerImpl.getManager();
-                        apiManager.authenticate();
-                        isReAuth = true;
-                    } catch (HDExploreException e1) {
-                            DefaultLoader.getUIHelper().showException(
-                                    "An error occurred while attempting to sign in to your account.", e1,
-                                    "HDInsight Explorer - Error Signing In", false, true);
-                        } finally {
-                        break;
-                    }
-                }
-            }
-        }
-
-        return isReAuth;
     }
 
     @Override

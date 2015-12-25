@@ -5,12 +5,18 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleTypeId;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.projects.HDInsightModuleType;
+import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
+import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import com.microsoft.azure.hdinsight.spark.UI.SparkSubmissionDialog;
+import com.microsoft.azure.hdinsight.spark.UI.SparkSubmissionToolWindowFactory;
+
+import java.util.List;
 
 /**
  * Created by guizha on 8/21/2015.
@@ -18,8 +24,26 @@ import com.microsoft.azure.hdinsight.spark.UI.SparkSubmissionDialog;
 public class SubmitAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent anActionEvent) {
-        SparkSubmissionDialog sparkSubmissionDialog = new SparkSubmissionDialog();
-        sparkSubmissionDialog.setVisible(true);
+        List<IClusterDetail>cachedClusterDetails = HDInsightHelper.getInstance().getcachedClusterDetails();
+        if(cachedClusterDetails == null){
+            ToolWindow sparkSubmissionToolWindow = ToolWindowManager.getInstance(anActionEvent.getProject()).getToolWindow(SparkSubmissionToolWindowFactory.SPARK_SUBMISSION_WINDOW);
+            sparkSubmissionToolWindow.show(() ->{
+                try {
+                    HDInsightHelper.getInstance().getClusterDetails();
+                }
+                catch (HDExploreException e) {
+
+                }
+
+                List<IClusterDetail> newCachedClusterDetails = HDInsightHelper.getInstance().getcachedClusterDetails();
+                SparkSubmissionDialog sparkSubmissionDialog = new SparkSubmissionDialog(anActionEvent.getProject(), newCachedClusterDetails);
+                sparkSubmissionDialog.setVisible(true);
+            });
+
+        }else{
+            SparkSubmissionDialog sparkSubmissionDialog = new SparkSubmissionDialog(anActionEvent.getProject(),cachedClusterDetails);
+            sparkSubmissionDialog.setVisible(true);
+        }
     }
 
     public void update(AnActionEvent event) {

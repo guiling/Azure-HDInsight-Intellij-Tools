@@ -85,7 +85,7 @@ public class InteractiveTableModel extends AbstractTableModel{
                 record.setKey((String)aValue);
                 break;
             case VALUE_INDEX:
-                record.setValue((String)aValue);
+                record.setValue(aValue);
                 break;
             default:
                 return;
@@ -99,7 +99,7 @@ public class InteractiveTableModel extends AbstractTableModel{
         }
 
         ConfigurationKeyValueRecord record = dataRecords.get(getRowCount() -1);
-        if(record.getKey().trim().equals("") && record.getValue().trim().equals("")){
+        if(record.getKey().trim().equals("") && record.getValue().toString().trim().equals("")){
             return true;
         }
 

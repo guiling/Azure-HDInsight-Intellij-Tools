@@ -8,8 +8,10 @@ public class StorageAccount {
     private String storageName;
     private String storageKey;
     private String protocol;
+    private String fullStorageBlobName;
 
     public StorageAccount(String name, String key){
+        this.fullStorageBlobName = name;
         this.storageName = name.replace(".blob.core.windows.net", "");
         this.storageKey = key;
         this.protocol = Default_Protocol;
@@ -27,8 +29,8 @@ public class StorageAccount {
         return protocol;
     }
 
-    public void setProtocal(String protocal){
-        this.protocol = protocal;
+    public String getFullStoragBlobName(){
+        return fullStorageBlobName;
     }
 
     public String getConnection(){
