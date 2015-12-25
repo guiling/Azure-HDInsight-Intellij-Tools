@@ -44,6 +44,31 @@ public class HDInsightRootModule extends RefreshableNode {
         this.project = project;
     }
 
+ public void addHDInsightAdditionalCluster(HDInsightClusterDetail hdInsightClusterDetail) {
+
+        hdinsightAdditionalList.add(hdInsightClusterDetail);
+        writeToLocalJson();
+        refreshWithoutAsync();
+    }
+
+public boolean IsHDInsightAdditionalClusterExist(String clusterName) {
+
+        for(IClusterDetail clusterDetail : hdinsightAdditionalList)
+        {
+            if(clusterDetail.getName().equals(clusterName)) {
+                return true;
+            }
+        }
+
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            if (clusterDetail.getName().equals(clusterName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     protected void refreshItems() throws HDExploreException {
         removeAllChildNodes();
@@ -53,6 +78,12 @@ public class HDInsightRootModule extends RefreshableNode {
             for (IClusterDetail clusterDetail : clusterDetailList) {
                 addChildNode(new ClusterNode(this, clusterDetail));
             }
+        }
+
+        hdinsightAdditionalList = getFromLocalJson();
+        for(IClusterDetail clusterDetail : hdinsightAdditionalList)
+        {
+            addChildNode(new ClusterNode(this, clusterDetail));
         }
     }
 
@@ -92,4 +123,99 @@ public class HDInsightRootModule extends RefreshableNode {
             });
         }
     }
+
+    private void refreshWithoutAsync() {
+        removeAllChildNodes();
+        for (IClusterDetail clusterDetail : clusterDetailList) {
+            addChildNode(new ClusterNode(this, clusterDetail));
+        }
+
+        for(IClusterDetail clusterDetail : hdinsightAdditionalList)
+        {
+            addChildNode(new ClusterNode(this, clusterDetail));
+        }
+    }
+
+    private boolean dealWithAggregatedException(AggregatedException aggregateException) {
+        boolean isReAuth = false;
+        for (Exception exception : aggregateException.getExceptionList()) {
+            if (exception instanceof HDIException) {
+                if (((HDIException) exception).getErrorCode() == AuthenticationErrorHandler.AUTH_ERROR_CODE) {
+                    try {
+                        AzureManager apiManager = AzureManagerImpl.getManager();
+                        apiManager.authenticate();
+                        isReAuth = true;
+                    } catch (HDExploreException e1) {
+                        DefaultLoader.getUIHelper().showException(
+                                "An error occurred while attempting to sign in to your account.", e1,
+                                "HDInsight Explorer - Error Signing In", false, true);
+                    } finally {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return isReAuth;
+    }
+
+    private void writeToLocalJson()
+    {
+
+        Gson gson = new Gson();
+        String json = gson.toJson(hdinsightAdditionalList);
+        String filePath = String.join(PluginUtil.getCOnfigPath(), File.pathSeparator, PluginUtil.HDINSIGHT_ADDITIONAL_CLUSTER_RECODER);
+
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                        try{
+                            FileWriter writer = new FileWriter(filePath);
+                            writer.write(json);
+                            writer.close();
+                    }catch (IOException ex)
+                    {
+                        //do noting if we cannot write it to local file.
+                    }
+                }
+            });
+    }
+
+    private List<IClusterDetail> getFromLocalJson()
+    {
+        Gson gson = new Gson();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String s = null;
+
+                    BufferedReader bufferedReader = new BufferedReader(new FileReader(String.join(PluginUtil.getCOnfigPath(), File.pathSeparator, "favourateCluster.json")));
+
+                    while((s = bufferedReader.readLine()) != null)
+                    {
+                        stringBuilder.append(s);
+                    }
+
+                } catch (IOException e) {
+                    //we donoting if we cannot read it from local file
+                }
+            }
+        }, ModalityState.NON_MODAL);
+
+        List<IClusterDetail> hdiLocalClusters = new ArrayList<IClusterDetail>();
+                try{
+                    hdiLocalClusters = gson.fromJson(stringBuilder.toString(), new TypeToken<ArrayList<HDInsightClusterDetail>>() {}.getType());
+                }
+                catch (JsonSyntaxException e)
+                {
+                    //do nothing if we cannot get it from json
+                }
+
+        return hdiLocalClusters;
+    }
+
+
 }

@@ -40,7 +40,8 @@ public class StorageClientImpl implements IStorageClient {
         try {
             List<BlobContainer> bcList = new ArrayList<>();
             CloudBlobClient client = getCloudBlobClient(storageAccount);
-            for (CloudBlobContainer container : client.listContainers(null, ContainerListingDetails.ALL, null, null)) {
+            Iterable<CloudBlobContainer> temp = client.listContainers(null, ContainerListingDetails.ALL, null, null);
+            for (CloudBlobContainer container : temp) {
                 String uri = container.getUri() != null ? container.getUri().toString() : "";
                 String eTag = "";
                 Calendar lastModified = new GregorianCalendar();
@@ -261,8 +262,8 @@ public class StorageClientImpl implements IStorageClient {
 
     private CloudBlobClient getCloudBlobClient(StorageAccount storageAccount)
             throws Exception {
-        CloudStorageAccount csa = CloudStorageAccount.parse(storageAccount.getConnection());
-        return csa.createCloudBlobClient();
+         CloudStorageAccount csa = CloudStorageAccount.parse(storageAccount.getConnection());
+         return csa.createCloudBlobClient();
     }
 
     private static String extractBlobItemName(String path, String delimiter) {
