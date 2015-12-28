@@ -12,6 +12,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.microsoft.azure.hdinsight.ProjectManager;
 import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.serverexplore.UI.AddNewClusterFrom;
@@ -47,6 +48,8 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
         // initialize azure service module
         azureServiceModule = new HDInsightRootModule(project);
 
+        ProjectManager.initliza(project);
+
         // initialize with all the service modules
         treeModel = new DefaultTreeModel(initRoot());
 
@@ -74,6 +77,11 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
             azureServiceModule.registerSubscriptionsChanged();
         } catch (HDExploreException ignored) {
         }
+    }
+
+    public HDInsightRootModule getAzureServiceModule()
+    {
+        return azureServiceModule;
     }
 
     private DefaultMutableTreeNode initRoot() {

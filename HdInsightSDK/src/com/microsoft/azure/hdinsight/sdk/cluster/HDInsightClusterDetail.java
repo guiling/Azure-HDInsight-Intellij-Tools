@@ -34,6 +34,11 @@ public class HDInsightClusterDetail implements IClusterDetail {
     }
 
     @Override
+    public boolean isConfigInfoAvailable() {
+        return false;
+    }
+
+    @Override
     public String getName() {
         return clusterName;
     }
