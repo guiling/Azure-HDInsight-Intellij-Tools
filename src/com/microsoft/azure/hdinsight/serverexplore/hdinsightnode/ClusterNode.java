@@ -6,6 +6,7 @@ import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightClusterDetail;
 import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
+import com.microsoft.azure.hdinsight.serverexplore.UI.DeleteHDInsightClusterDialog;
 import com.microsoft.azure.hdinsight.serverexplore.node.*;
 import com.sun.istack.internal.NotNull;
 
@@ -34,7 +35,9 @@ public class ClusterNode extends HDInsightRefreshNode {
             addAction("Delete", new NodeActionListener() {
                 @Override
                 protected void actionPerformed(NodeActionEvent e) throws HDExploreException {
-                    ProjectManager.getInstance().getHDInsightRootModule().removeHDInsightAdditionalCluster((HDInsightClusterDetail)clusterDetail);
+                    DeleteHDInsightClusterDialog deleteHDInsightClusterDialog = new DeleteHDInsightClusterDialog((HDInsightClusterDetail) clusterDetail);
+                    deleteHDInsightClusterDialog.pack();
+                    deleteHDInsightClusterDialog.setVisible(true);
                 }
             });
         }
