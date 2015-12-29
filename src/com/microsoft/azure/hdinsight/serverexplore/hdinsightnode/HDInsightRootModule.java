@@ -57,7 +57,7 @@ public class HDInsightRootModule extends RefreshableNode {
         saveAdditionalClusters();
     }
 
-    public boolean IsHDInsightAdditionalClusterExist(String clusterName) {
+    public boolean isHDInsightAdditionalClusterExist(String clusterName) {
 
         for(IClusterDetail clusterDetail : hdinsightAdditionalList)
         {

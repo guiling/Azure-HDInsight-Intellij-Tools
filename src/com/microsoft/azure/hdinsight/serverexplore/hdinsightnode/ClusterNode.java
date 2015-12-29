@@ -1,8 +1,6 @@
 package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
-import com.microsoft.azure.hdinsight.ProjectManager;
 import com.microsoft.azure.hdinsight.common.CommonConst;
-import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightClusterDetail;
 import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;

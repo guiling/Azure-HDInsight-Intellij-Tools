@@ -4,8 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.ValidationInfo;
-import com.microsoft.azure.hdinsight.ProjectManager;
+import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.StringHelper;
 import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightClusterDetail;
 import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
@@ -87,6 +86,13 @@ public class AddNewClusterFrom extends DialogWrapper {
                     userName = userNameField.getText().trim();
                     password = String.valueOf(passwordField.getPassword());
 
+                    HDInsightRootModule hdInsightRootModule = HDInsightHelper.getInstance().getServerExplorerRootModule();
+
+                    if(hdInsightRootModule == null)
+                    {
+                        return;
+                    }
+
                     if (StringHelper.isNullOrWhiteSpace(clusterNameOrUrl) || StringHelper.isNullOrWhiteSpace(userName) || StringHelper.isNullOrWhiteSpace(password)) {
                         errorMessage = "Cluster Name, User Name and Password shouldn't be empty";
                         isCarryOnNextStep = false;
@@ -94,7 +100,7 @@ public class AddNewClusterFrom extends DialogWrapper {
                         try {
                             clusterName = getClusterName(clusterNameOrUrl);
 
-                            if(ProjectManager.getInstance().getHDInsightRootModule().IsHDInsightAdditionalClusterExist(clusterName))
+                            if(hdInsightRootModule.isHDInsightAdditionalClusterExist(clusterName))
                             {
                                 errorMessage = "Cluster already exist!";
                                 isCarryOnNextStep = false;
@@ -138,7 +144,7 @@ public class AddNewClusterFrom extends DialogWrapper {
                         if (storageAccounts != null && storageAccounts.size() >= 1) {
                             HDInsightClusterDetail hdInsightClusterDetail = new HDInsightClusterDetail(clusterName, userName, password, storageAccounts);
 
-                            ProjectManager.getInstance().getHDInsightRootModule().addHDInsightAdditionalCluster(hdInsightClusterDetail);
+                            hdInsightRootModule.addHDInsightAdditionalCluster(hdInsightClusterDetail);
 
                             close(DialogWrapper.OK_EXIT_CODE, true);
                         }

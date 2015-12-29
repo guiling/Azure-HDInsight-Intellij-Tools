@@ -12,8 +12,8 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.microsoft.azure.hdinsight.ProjectManager;
 import com.microsoft.azure.hdinsight.common.CommonConst;
+import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
 import com.microsoft.azure.hdinsight.serverexplore.UI.AddNewClusterFrom;
 import com.microsoft.azure.hdinsight.serverexplore.UI.ManageSubscriptionForm;
@@ -42,13 +42,13 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
     private JTree tree;
     private HDInsightRootModule azureServiceModule;
     private DefaultTreeModel treeModel;
-
+    public static final String TOOLWINDOW_FACTORY_ID = "HDInsight Explorer";
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
         // initialize azure service module
         azureServiceModule = new HDInsightRootModule(project);
 
-        ProjectManager.initliza(project);
+        HDInsightHelper.getInstance().registerToolWindowFactory(TOOLWINDOW_FACTORY_ID, this);
 
         // initialize with all the service modules
         treeModel = new DefaultTreeModel(initRoot());
