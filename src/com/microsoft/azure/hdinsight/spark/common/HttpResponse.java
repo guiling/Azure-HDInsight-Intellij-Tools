@@ -3,14 +3,16 @@ package com.microsoft.azure.hdinsight.spark.common;
 /**
  * Created by joezhang on 15-10-27.
  */
-public class HttpErrorStatus {
+public class HttpResponse {
 
     private int code;
     private String message;
+    private String reason;
 
-    public HttpErrorStatus(int code, String message){
+    public HttpResponse(int code, String message, String reason){
         this.code = code;
         this.message = message;
+        this.reason = reason;
     }
 
     public int getStatusCode(){
@@ -19,5 +21,9 @@ public class HttpErrorStatus {
 
     public String getMessage(){
         return this.message;
+    }
+
+    public String getReason(){
+        return this.reason;
     }
 }

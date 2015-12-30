@@ -20,7 +20,9 @@ package com.microsoft.azure.hdinsight.spark.common;
         name	            Name of the application	string
 */
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *For interactive spark job:
@@ -46,11 +48,22 @@ public class SparkSubmissionParameter {
     private String className="";
 
     private List<String> files;
+    private List<String> jars;
+    private List<String> args;
+    private Map<String, Object> jobConfig;
 
-    public SparkSubmissionParameter(String file, String className, List<String>files){
+    public SparkSubmissionParameter(String file,
+                                    String className,
+                                    List<String> referencedFiles,
+                                    List<String> referencedJars,
+                                    List<String> args,
+                                    Map<String, Object> jobConfig){
         this.file = file;
         this.className = className;
-        this.files = files;
+        this.files = referencedFiles;
+        this.jars = referencedJars;
+        this.jobConfig = jobConfig;
+        this.args = args;
     }
 
     public String getFile() {
@@ -63,5 +76,56 @@ public class SparkSubmissionParameter {
 
     public List<String> getFiles(){
         return files;
+    }
+
+    public List<String> getJars(){return jars;}
+
+    public List<String> getArgs(){
+        return args;
+    }
+
+    public Map<String, Object> getSparkSubmissionParameterMap(){
+        Map<String, Object> map = new HashMap<>();
+        map.put("file", file);
+        map.put("className", className);
+        if(files != null && files.size() > 0){
+            map.put("files", files);
+        }
+
+        if(jars != null && jars.size() > 0){
+            map.put("jars", jars);
+        }
+
+        if(args != null && args.size() > 0){
+            map.put("args", args);
+        }
+
+        if(jobConfig != null){
+            if(jobConfig.containsKey("driverMemory")){
+                map.put("driverMemory", jobConfig.get("driverMemory"));
+            }
+
+            if(jobConfig.containsKey("driverCores")){
+                map.put("driverCores", jobConfig.get("driverCores"));
+            }
+
+            if(jobConfig.containsKey("executorMemory")){
+                map.put("executorMemory", jobConfig.get("executorMemory"));
+            }
+
+            if(jobConfig.containsKey("executorCores")){
+                map.put("executorCores", jobConfig.get("executorCores"));
+            }
+
+            if(jobConfig.containsKey("numExecutors")){
+                map.put("numExecutors", jobConfig.get("numExecutors"));
+            }
+
+            if(jobConfig.containsKey("name")){
+                map.put("name", jobConfig.get("name"));
+            }
+        }
+
+        return map;
     }
 }

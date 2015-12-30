@@ -34,6 +34,12 @@
               id="HDInsight Explorer"
               canCloseContents="false"
               icon="/icons/HdExplorer.png"/>
+      <toolWindow
+              anchor="bottom"
+              factoryClass="com.microsoft.azure.hdinsight.spark.UI.SparkSubmissionToolWindowFactory"
+              id="Spark Submission"
+              canCloseContents="false"
+              icon="/icons/SparkSubmissionToolWindow.png"/>
   </extensions>
 
   <application-components>

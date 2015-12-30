@@ -20,4 +20,5 @@ public class CommonConst {
     public static final String AZURE_SUBSCRIPTIONS = "com.microsoft.azure.hdinsight.intellij.AzureSubscriptions";
     public static final String AZURE_USER_INFO = "com.microsoft.azure.hdinsight.intellij.AzureUserInfo";
     public static final String AZURE_USER_SUBSCRIPTIONS = "com.microsoft.azure.hdinsight.intellij.AzureUserSubscriptions";
+    public static final String HDINSIGHT_ADDITIONAL_CLUSTERS = "com.microsoft.azure.hdinsight.AdditionalClusters";
 }

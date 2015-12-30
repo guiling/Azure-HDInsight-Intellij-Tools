@@ -5,7 +5,7 @@ package com.microsoft.azure.hdinsight.spark.UIHelper;
  */
 public class ConfigurationKeyValueRecord {
     private String key = "";
-    private String value = "";
+    private Object value = "";
 
     public String getKey() {
         return key;
@@ -15,11 +15,11 @@ public class ConfigurationKeyValueRecord {
         this.key = key;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(Object value) {
         this.value = value;
     }
 }

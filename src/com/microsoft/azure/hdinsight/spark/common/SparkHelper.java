@@ -27,18 +27,13 @@ public class SparkHelper {
         return result.toString();
     }
 
-    public static String getResultFromHttpResponse(CloseableHttpResponse response) throws  IOException{
+    public static HttpResponse getResultFromHttpResponse(CloseableHttpResponse response) throws  IOException{
         int code = response.getStatusLine().getStatusCode();
-
+        String reason = response.getStatusLine().getReasonPhrase();
         HttpEntity entity = response.getEntity();
         try(InputStream inputStream = entity.getContent()) {
             String response_content = SparkHelper.getResultFromInputStream(inputStream);
-            if(code == 200 || code == 201) {
-                return response_content;
-            }
-            else {
-                return new Gson().toJson(new HttpErrorStatus(code,response_content));
-            }
+            return new HttpResponse(code,response_content,reason);
         }
     }
 }

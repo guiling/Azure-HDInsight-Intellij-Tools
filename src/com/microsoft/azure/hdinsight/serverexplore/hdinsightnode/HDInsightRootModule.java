@@ -1,23 +1,21 @@
 package com.microsoft.azure.hdinsight.serverexplore.hdinsightnode;
 
-import com.intellij.ide.ui.AppearanceOptionsTopHitProvider;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import com.microsoft.azure.hdinsight.common.CommonConst;
-import com.microsoft.azure.hdinsight.sdk.cluster.ClusterManager;
-import com.microsoft.azure.hdinsight.sdk.cluster.ClusterType;
+import com.microsoft.azure.hdinsight.common.HDInsightHelper;
+import com.microsoft.azure.hdinsight.common.StringHelper;
+import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightAdditionalClusterDetail;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
-import com.microsoft.azure.hdinsight.sdk.common.AggregatedException;
-import com.microsoft.azure.hdinsight.sdk.common.AuthenticationErrorHandler;
-import com.microsoft.azure.hdinsight.sdk.common.HDIException;
-import com.microsoft.azure.hdinsight.serverexplore.AzureManager;
 import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
-import com.microsoft.azure.hdinsight.common.PluginUtil;
-import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 import com.microsoft.azure.hdinsight.serverexplore.AzureManagerImpl;
 import com.microsoft.azure.hdinsight.serverexplore.node.EventHelper;
 import com.microsoft.azure.hdinsight.serverexplore.node.Node;
 import com.microsoft.azure.hdinsight.serverexplore.node.RefreshableNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,6 +31,9 @@ public class HDInsightRootModule extends RefreshableNode {
     private boolean registeredSubscriptionsChanged;
     private final Object subscriptionsChangedSync = new Object();
 
+    private List<IClusterDetail> clusterDetailList = new ArrayList<IClusterDetail>();
+    private List<IClusterDetail> hdinsightAdditionalList = new ArrayList<IClusterDetail>();
+
     public HDInsightRootModule(Node parent, String iconPath, Object data) {
         super(HDInsight_SERVICE_MODULE_ID, BASE_MODULE_NAME, parent, iconPath);
     }
@@ -42,52 +43,51 @@ public class HDInsightRootModule extends RefreshableNode {
         this.project = project;
     }
 
+    public void addHDInsightAdditionalCluster(HDInsightAdditionalClusterDetail hdInsightClusterDetail) {
+
+        hdinsightAdditionalList.add(hdInsightClusterDetail);
+        refreshWithoutAsync();
+        saveAdditionalClusters();
+    }
+
+    public void removeHDInsightAdditionalCluster(HDInsightAdditionalClusterDetail hdInsightClusterDetail) {
+        hdinsightAdditionalList.remove(hdInsightClusterDetail);
+        refreshWithoutAsync();
+        saveAdditionalClusters();
+    }
+
+    public boolean isHDInsightAdditionalClusterExist(String clusterName) {
+
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            if (clusterDetail.getName().equals(clusterName)) {
+                return true;
+            }
+        }
+
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            if (clusterDetail.getName().equals(clusterName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     protected void refreshItems() throws HDExploreException {
         removeAllChildNodes();
-        List<Subscription> subscriptionList = AzureManagerImpl.getManager().getSubscriptionList();
-        List<IClusterDetail> clusterDetailList = null;
-        try{
-            clusterDetailList = ClusterManager.getInstance().getHDInsightClusersWithSpecificType(subscriptionList, ClusterType.spark);
-        }catch (AggregatedException aggregateException){
-           if (dealWithAggregatedException(aggregateException)) {
-               subscriptionList = AzureManagerImpl.getManager().getSubscriptionList();
-               try {
-                   clusterDetailList = ClusterManager.getInstance().getHDInsightClusersWithSpecificType(subscriptionList, ClusterType.spark);
-               } catch (Exception exception) {
-                   DefaultLoader.getUIHelper().showError("Failed to list HDInsight cluster", "List HDInsight Cluster");
-               }
-           }
-        }
+        clusterDetailList = HDInsightHelper.getInstance().getClusterDetails();
 
-        if(clusterDetailList != null) {
+        if (clusterDetailList != null) {
             for (IClusterDetail clusterDetail : clusterDetailList) {
                 addChildNode(new ClusterNode(this, clusterDetail));
             }
         }
-    }
 
-    private boolean dealWithAggregatedException(AggregatedException aggregateException) {
-        boolean isReAuth = false;
-        for(Exception exception : aggregateException.getExceptionList()){
-            if(exception instanceof HDIException) {
-                if(((HDIException)exception).getErrorCode() == AuthenticationErrorHandler.AUTH_ERROR_CODE){
-                    try {
-                        AzureManager apiManager = AzureManagerImpl.getManager();
-                        apiManager.authenticate();
-                        isReAuth = true;
-                    } catch (HDExploreException e1) {
-                            DefaultLoader.getUIHelper().showException(
-                                    "An error occurred while attempting to sign in to your account.", e1,
-                                    "HDInsight Explorer - Error Signing In", false, true);
-                        } finally {
-                        break;
-                    }
-                }
-            }
+        hdinsightAdditionalList = getAdditionalClusters();
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            addChildNode(new ClusterNode(this, clusterDetail));
         }
-
-        return isReAuth;
     }
 
     @Override
@@ -126,4 +126,43 @@ public class HDInsightRootModule extends RefreshableNode {
             });
         }
     }
+
+    private void refreshWithoutAsync() {
+        removeAllChildNodes();
+
+        if(clusterDetailList != null) {
+            for (IClusterDetail clusterDetail : clusterDetailList) {
+                addChildNode(new ClusterNode(this, clusterDetail));
+            }
+        }
+
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            addChildNode(new ClusterNode(this, clusterDetail));
+        }
+    }
+
+    private void saveAdditionalClusters() {
+        Gson gson = new Gson();
+        String json = gson.toJson(hdinsightAdditionalList);
+        DefaultLoader.getIdeHelper().setProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS, json);
+    }
+
+    private List<IClusterDetail> getAdditionalClusters() {
+        Gson gson = new Gson();
+        String json = DefaultLoader.getIdeHelper().getProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS);
+        List<IClusterDetail> hdiLocalClusters = new ArrayList<IClusterDetail>();
+
+        if (!StringHelper.isNullOrWhiteSpace(json)) {
+            try {
+                hdiLocalClusters = gson.fromJson(json, new TypeToken<ArrayList<HDInsightAdditionalClusterDetail>>() {
+                }.getType());
+            } catch (JsonSyntaxException e) {
+                //do nothing if we cannot get it from json
+            }
+        }
+
+        return hdiLocalClusters;
+    }
+
+
 }
