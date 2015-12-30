@@ -1,5 +1,6 @@
 package com.microsoft.azure.hdinsight.common;
 
+import com.intellij.openapi.project.Project;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterManager;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterType;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
@@ -10,6 +11,7 @@ import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 import com.microsoft.azure.hdinsight.serverexplore.AzureManager;
 import com.microsoft.azure.hdinsight.serverexplore.AzureManagerImpl;
 import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
+import com.microsoft.azure.hdinsight.spark.UI.SparkSubmissionToolWindowFactory;
 
 import java.util.List;
 
@@ -51,7 +53,7 @@ public class HDInsightHelper {
                 try {
                     clusterDetailList = ClusterManager.getInstance().getHDInsightClusersWithSpecificType(subscriptionList, ClusterType.spark);
                 } catch (Exception exception) {
-                    DefaultLoader.getUIHelper().showError("Failed to list HDInsight cluster", "List HDInsight Cluster");
+                    DefaultLoader.getUIHelper().showException("Failed to list HDInsight cluster", exception, "List HDInsight Cluster", false, true);
                 }
             }
         }
@@ -81,5 +83,14 @@ public class HDInsightHelper {
         }
 
         return isReAuth;
+    }
+
+    private SparkSubmissionToolWindowFactory sparkSubmissionToolWindowFactory;
+    public void setSparkSubmissionToolWindowFactory(SparkSubmissionToolWindowFactory sparkSubmissionToolWindowFactory){
+       this.sparkSubmissionToolWindowFactory =sparkSubmissionToolWindowFactory;
+    }
+
+    public SparkSubmissionToolWindowFactory getSparkSubmissionToolWindowFactory(){
+        return sparkSubmissionToolWindowFactory;
     }
 }

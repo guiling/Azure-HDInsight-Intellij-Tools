@@ -163,6 +163,8 @@ public class ClusterDetail implements IClusterDetail {
             throw new HDIException("Failed to get default storage account name");
         }
 
+        String defaultContainerName = getDefaultContainerName(containerAddress);
+
         String keyNameOfDefaultStorageAccountKey = StorageAccountKeyPrefix + storageAccountName;
         String storageAccountKey = null;
         if(coresiteMap.containsKey(keyNameOfDefaultStorageAccountKey)){
@@ -173,7 +175,7 @@ public class ClusterDetail implements IClusterDetail {
             throw new HDIException("Failed to get default storage account key");
         }
         
-        return new StorageAccount(storageAccountName, storageAccountKey);
+        return new StorageAccount(storageAccountName, storageAccountKey,true, defaultContainerName);
     }
 
     private List<StorageAccount> getAdditionalStorageAccounts(Map<String, String> coresiteMap){
@@ -190,7 +192,7 @@ public class ClusterDetail implements IClusterDetail {
 
             if(entry.getKey().contains(StorageAccountKeyPrefix)){
                 StorageAccount account =
-                        new StorageAccount(entry.getKey().substring(StorageAccountKeyPrefix.length()), entry.getValue());
+                        new StorageAccount(entry.getKey().substring(StorageAccountKeyPrefix.length()), entry.getValue(), false, null);
                 storageAccounts.add(account);
             }
         }
@@ -204,6 +206,17 @@ public class ClusterDetail implements IClusterDetail {
         if(m.find())
         {
             return m.group(2);
+        }
+
+        return null;
+    }
+
+    private String getDefaultContainerName(String containerAddress){
+        Pattern r = Pattern.compile(StorageAccountNamePattern);
+        Matcher m = r.matcher(containerAddress);
+        if(m.find())
+        {
+            return m.group(1);
         }
 
         return null;
