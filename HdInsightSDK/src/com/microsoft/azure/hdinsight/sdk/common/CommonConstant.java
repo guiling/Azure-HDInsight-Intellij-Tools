@@ -13,4 +13,5 @@ public class CommonConstant {
     public static final String attemptnone_promoteValue = "attempt_none";
     public static final String refreshsession="refresh_session";
     public static final String managementUri = "https://management.azure.com/";
+    public static final String default_cluster_endpoint = "https://%s.azurehdinsight.net";
 }

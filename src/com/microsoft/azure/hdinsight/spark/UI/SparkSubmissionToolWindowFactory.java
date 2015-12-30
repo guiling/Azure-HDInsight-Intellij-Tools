@@ -28,7 +28,7 @@ public class SparkSubmissionToolWindowFactory implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(Project project, ToolWindow toolWindow) {
-        HDInsightHelper.getInstance().setSparkSubmissionToolWindowFactory(this);
+        HDInsightHelper.getInstance().registerToolWindowFactory(SPARK_SUBMISSION_WINDOW, this);
 
         jEditorPanel = new JEditorPane();
         fontName = jEditorPanel.getFont().getFamily();
