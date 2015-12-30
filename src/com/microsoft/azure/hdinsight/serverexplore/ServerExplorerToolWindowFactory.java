@@ -24,6 +24,7 @@ import com.microsoft.azure.hdinsight.serverexplore.collections.ObservableList;
 import com.microsoft.azure.hdinsight.serverexplore.node.Node;
 import com.microsoft.azure.hdinsight.serverexplore.node.NodeAction;
 import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.*;
@@ -43,6 +44,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
     private HDInsightRootModule azureServiceModule;
     private DefaultTreeModel treeModel;
     public static final String TOOLWINDOW_FACTORY_ID = "HDInsight Explorer";
+
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
         // initialize azure service module
@@ -79,8 +81,7 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
         }
     }
 
-    public HDInsightRootModule getAzureServiceModule()
-    {
+    public HDInsightRootModule getAzureServiceModule() {
         return azureServiceModule;
     }
 

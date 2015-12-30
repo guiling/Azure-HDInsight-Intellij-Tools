@@ -24,8 +24,7 @@ public class HDInsightAdditionalClusterDetail implements IClusterDetail {
     @Expose
     private List<StorageAccount> additionalStorageAccounts;
 
-    public HDInsightAdditionalClusterDetail(String clusterName, String userName, String passWord, List<StorageAccount> storageAccounts)
-    {
+    public HDInsightAdditionalClusterDetail(String clusterName, String userName, String passWord, List<StorageAccount> storageAccounts) {
         this.clusterName = clusterName;
         this.userName = userName;
         this.passWord = passWord;

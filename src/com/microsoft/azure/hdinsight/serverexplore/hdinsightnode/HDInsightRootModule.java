@@ -6,7 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.microsoft.azure.hdinsight.common.CommonConst;
 import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.StringHelper;
-import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightClusterDetail;
+import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightAdditionalClusterDetail;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
 import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
@@ -43,15 +43,14 @@ public class HDInsightRootModule extends RefreshableNode {
         this.project = project;
     }
 
-    public void addHDInsightAdditionalCluster(HDInsightClusterDetail hdInsightClusterDetail) {
+    public void addHDInsightAdditionalCluster(HDInsightAdditionalClusterDetail hdInsightClusterDetail) {
 
         hdinsightAdditionalList.add(hdInsightClusterDetail);
         refreshWithoutAsync();
         saveAdditionalClusters();
     }
 
-    public void removeHDInsightAdditionalCluster(HDInsightClusterDetail hdInsightClusterDetail)
-    {
+    public void removeHDInsightAdditionalCluster(HDInsightAdditionalClusterDetail hdInsightClusterDetail) {
         hdinsightAdditionalList.remove(hdInsightClusterDetail);
         refreshWithoutAsync();
         saveAdditionalClusters();
@@ -59,9 +58,8 @@ public class HDInsightRootModule extends RefreshableNode {
 
     public boolean isHDInsightAdditionalClusterExist(String clusterName) {
 
-        for(IClusterDetail clusterDetail : hdinsightAdditionalList)
-        {
-            if(clusterDetail.getName().equals(clusterName)) {
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            if (clusterDetail.getName().equals(clusterName)) {
                 return true;
             }
         }
@@ -80,19 +78,15 @@ public class HDInsightRootModule extends RefreshableNode {
         removeAllChildNodes();
         clusterDetailList = HDInsightHelper.getInstance().getClusterDetails();
 
-        if(clusterDetailList != null) {
+        if (clusterDetailList != null) {
             for (IClusterDetail clusterDetail : clusterDetailList) {
                 addChildNode(new ClusterNode(this, clusterDetail));
             }
         }
 
         hdinsightAdditionalList = getAdditionalClusters();
-        if(hdinsightAdditionalList != null)
-        {
-            for(IClusterDetail clusterDetail : hdinsightAdditionalList)
-            {
-                addChildNode(new ClusterNode(this, clusterDetail));
-            }
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
+            addChildNode(new ClusterNode(this, clusterDetail));
         }
     }
 
@@ -136,40 +130,35 @@ public class HDInsightRootModule extends RefreshableNode {
     private void refreshWithoutAsync() {
         removeAllChildNodes();
 
-        for (IClusterDetail clusterDetail : clusterDetailList) {
-            addChildNode(new ClusterNode(this, clusterDetail));
+        if(clusterDetailList != null) {
+            for (IClusterDetail clusterDetail : clusterDetailList) {
+                addChildNode(new ClusterNode(this, clusterDetail));
+            }
         }
 
-        for(IClusterDetail clusterDetail : hdinsightAdditionalList)
-        {
+        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
             addChildNode(new ClusterNode(this, clusterDetail));
         }
     }
 
-    private void saveAdditionalClusters()
-    {
+    private void saveAdditionalClusters() {
         Gson gson = new Gson();
         String json = gson.toJson(hdinsightAdditionalList);
-        DefaultLoader.getIdeHelper().setProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS,json);
+        DefaultLoader.getIdeHelper().setProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS, json);
     }
 
-    private List<IClusterDetail> getAdditionalClusters()
-    {
+    private List<IClusterDetail> getAdditionalClusters() {
         Gson gson = new Gson();
         String json = DefaultLoader.getIdeHelper().getProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS);
         List<IClusterDetail> hdiLocalClusters = new ArrayList<IClusterDetail>();
 
-        if(StringHelper.isNullOrWhiteSpace(json))
-        {
-            return hdiLocalClusters;
-        }
-
-        try{
-            hdiLocalClusters = gson.fromJson(json, new TypeToken<ArrayList<HDInsightClusterDetail>>() {}.getType());
-        }
-        catch (JsonSyntaxException e)
-        {
-            //do nothing if we cannot get it from json
+        if (!StringHelper.isNullOrWhiteSpace(json)) {
+            try {
+                hdiLocalClusters = gson.fromJson(json, new TypeToken<ArrayList<HDInsightAdditionalClusterDetail>>() {
+                }.getType());
+            } catch (JsonSyntaxException e) {
+                //do nothing if we cannot get it from json
+            }
         }
 
         return hdiLocalClusters;

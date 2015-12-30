@@ -6,12 +6,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.StringHelper;
-import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightClusterDetail;
+import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightAdditionalClusterDetail;
+import com.microsoft.azure.hdinsight.sdk.common.HDIException;
 import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
 import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
-import com.microsoft.azure.hdinsight.spark.common.AddNewClusterImpl;
-import com.microsoft.azure.hdinsight.spark.common.StorageAccountResolveException;
-import com.microsoft.azure.hdinsight.spark.common.UnAuthorizedException;
+import com.microsoft.azure.hdinsight.common.AddHDInsightAdditionalClusterImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +18,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -46,19 +44,8 @@ public class AddNewClusterFrom extends DialogWrapper {
     private JButton Okbutton;
     private JButton cancelButton;
 
-    private static final String DEFAULT_CLUSTER_ENDPOINT = "https://%s.azurehdinsight.net";
     private static final Pattern HTTPS_URL_PATTERN = Pattern.compile("https://[^/]+");
     private static final String URL_PREFIX = "https://";
-
-    //format input string
-    private static String getClusterName(String userNameOrUrl) throws Exception {
-        userNameOrUrl = userNameOrUrl.trim().toLowerCase();
-
-        if (userNameOrUrl.startsWith(URL_PREFIX)) {
-            String userName = userNameOrUrl.split("\\.")[0].substring(8);
-            return userName;
-        } else return userNameOrUrl;
-    }
 
     public AddNewClusterFrom(final Project project) {
         super(project, true);
@@ -82,14 +69,13 @@ public class AddNewClusterFrom extends DialogWrapper {
                     errorMessage = null;
                     errorMessageField.setVisible(false);
 
-                    String clusterNameOrUrl = clusterNameFiled.getText().trim();
-                    userName = userNameField.getText().trim();
+                    String clusterNameOrUrl = clusterNameFiled.getText().trim().toLowerCase();
+                    userName = userNameField.getText().trim().toLowerCase();
                     password = String.valueOf(passwordField.getPassword());
 
                     HDInsightRootModule hdInsightRootModule = HDInsightHelper.getInstance().getServerExplorerRootModule();
 
-                    if(hdInsightRootModule == null)
-                    {
+                    if (hdInsightRootModule == null) {
                         return;
                     }
 
@@ -97,52 +83,24 @@ public class AddNewClusterFrom extends DialogWrapper {
                         errorMessage = "Cluster Name, User Name and Password shouldn't be empty";
                         isCarryOnNextStep = false;
                     } else {
-                        try {
-                            clusterName = getClusterName(clusterNameOrUrl);
+                        clusterName = getClusterName(clusterNameOrUrl);
 
-                            if(hdInsightRootModule.isHDInsightAdditionalClusterExist(clusterName))
-                            {
-                                errorMessage = "Cluster already exist!";
-                                isCarryOnNextStep = false;
-                            }
-
-                        } catch (Exception exception) {
-                            errorMessage = "Wrong cluster name or cluster endpoint";
+                        if (clusterName == null) {
+                            errorMessage = "Wrong cluster name or endpoint";
+                            isCarryOnNextStep = false;
+                        } else if (hdInsightRootModule.isHDInsightAdditionalClusterExist(clusterName)) {
+                            errorMessage = "Cluster already exist!";
                             isCarryOnNextStep = false;
                         }
                     }
 
-                    if (isCarryOnNextStep){
-                        addNewClusterPanel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
-                        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    storageAccounts = AddNewClusterImpl.getStorageAccounts(clusterName, userName, password);
-                                    isCarryOnNextStep = true;
-                                } catch (UnAuthorizedException e1) {
-                                    isCarryOnNextStep = false;
-                                    errorMessage = "Wrong User Name or Password";
-                                } catch (UnknownHostException e2) {
-                                    isCarryOnNextStep = false;
-                                    errorMessage = "Wrong Cluster Name or Cluster Url";
-                                } catch (StorageAccountResolveException e3) {
-                                    isCarryOnNextStep = false;
-                                    errorMessage = "Not Support Cluster";
-                                } catch (Exception e4) {
-                                    isCarryOnNextStep = false;
-                                    errorMessage = "Something wrong with the cluster! Please try again later";
-                                }
-                            }
-                        }, ModalityState.NON_MODAL);
-
-                        addNewClusterPanel.setCursor(Cursor.getDefaultCursor());
+                    if (isCarryOnNextStep) {
+                        getStorageAccounts();
                     }
 
                     if (isCarryOnNextStep) {
                         if (storageAccounts != null && storageAccounts.size() >= 1) {
-                            HDInsightClusterDetail hdInsightClusterDetail = new HDInsightClusterDetail(clusterName, userName, password, storageAccounts);
+                            HDInsightAdditionalClusterDetail hdInsightClusterDetail = new HDInsightAdditionalClusterDetail(clusterName, userName, password, storageAccounts);
 
                             hdInsightRootModule.addHDInsightAdditionalCluster(hdInsightClusterDetail);
 
@@ -152,7 +110,7 @@ public class AddNewClusterFrom extends DialogWrapper {
                         errorMessageField.setText(errorMessage);
                         errorMessageField.setVisible(true);
                     }
-                    }
+                }
             }
         });
 
@@ -162,6 +120,34 @@ public class AddNewClusterFrom extends DialogWrapper {
                 close(DialogWrapper.CANCEL_EXIT_CODE, true);
             }
         });
+    }
+
+    //format input string
+    private static String getClusterName(String userNameOrUrl) {
+        if (userNameOrUrl.startsWith(URL_PREFIX)) {
+            return StringHelper.getClusterNameFromEndPoint(userNameOrUrl);
+        } else {
+            return userNameOrUrl;
+        }
+    }
+
+    private void getStorageAccounts() {
+        addNewClusterPanel.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    storageAccounts = AddHDInsightAdditionalClusterImpl.getStorageAccounts(clusterName, userName, password);
+                    isCarryOnNextStep = true;
+                } catch (HDIException e) {
+                    isCarryOnNextStep = false;
+                    errorMessage = e.getMessage();
+                }
+            }
+        }, ModalityState.NON_MODAL);
+
+        addNewClusterPanel.setCursor(Cursor.getDefaultCursor());
     }
 
     @NotNull

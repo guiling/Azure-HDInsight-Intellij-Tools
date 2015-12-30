@@ -1,7 +1,7 @@
 package com.microsoft.azure.hdinsight.serverexplore.UI;
 
 import com.microsoft.azure.hdinsight.common.HDInsightHelper;
-import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightClusterDetail;
+import com.microsoft.azure.hdinsight.sdk.cluster.HDInsightAdditionalClusterDetail;
 import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
 
 import javax.swing.*;
@@ -13,9 +13,9 @@ public class DeleteHDInsightClusterDialog extends JDialog {
     private JButton buttonCancel;
     private JTextField TextField;
 
-    private HDInsightClusterDetail clusterDetail;
+    private HDInsightAdditionalClusterDetail clusterDetail;
 
-    public DeleteHDInsightClusterDialog(HDInsightClusterDetail clusterDetail) {
+    public DeleteHDInsightClusterDialog(HDInsightAdditionalClusterDetail clusterDetail) {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
@@ -53,10 +53,9 @@ public class DeleteHDInsightClusterDialog extends JDialog {
 
     private void onOK() {
 
-        HDInsightRootModule rootModule =  HDInsightHelper.getInstance().getServerExplorerRootModule();
+        HDInsightRootModule rootModule = HDInsightHelper.getInstance().getServerExplorerRootModule();
 
-        if(rootModule != null)
-        {
+        if (rootModule != null) {
             rootModule.removeHDInsightAdditionalCluster(clusterDetail);
         }
 
