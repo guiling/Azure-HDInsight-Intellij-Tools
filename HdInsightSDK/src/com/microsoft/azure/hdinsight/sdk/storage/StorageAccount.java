@@ -10,10 +10,15 @@ public class StorageAccount {
     private String protocol;
     private String fullStorageBlobName;
 
-    public StorageAccount(String name, String key){
+    private boolean isDefaultStorageAccount;
+    private String defaultContainer;
+
+    public StorageAccount(String name, String key, boolean isDefault, String defaultContainer){
         this.fullStorageBlobName = name;
         this.storageName = name.replace(".blob.core.windows.net", "");
         this.storageKey = key;
+        this.isDefaultStorageAccount = isDefault;
+        this.defaultContainer = defaultContainer;
         this.protocol = Default_Protocol;
     }
 
@@ -31,6 +36,14 @@ public class StorageAccount {
 
     public String getFullStoragBlobName(){
         return fullStorageBlobName;
+    }
+
+    public boolean isDefaultStorageAccount(){
+        return isDefaultStorageAccount;
+    }
+
+    public String getDefaultContainer(){
+        return defaultContainer;
     }
 
     public String getConnection(){

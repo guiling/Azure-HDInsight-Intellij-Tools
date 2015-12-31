@@ -1,5 +1,6 @@
 package com.microsoft.azure.hdinsight.common;
 
+import com.intellij.openapi.wm.ToolWindowFactory;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterManager;
 import com.microsoft.azure.hdinsight.sdk.cluster.ClusterType;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
@@ -10,7 +11,11 @@ import com.microsoft.azure.hdinsight.sdk.subscription.Subscription;
 import com.microsoft.azure.hdinsight.serverexplore.AzureManager;
 import com.microsoft.azure.hdinsight.serverexplore.AzureManagerImpl;
 import com.microsoft.azure.hdinsight.serverexplore.HDExploreException;
+import com.microsoft.azure.hdinsight.serverexplore.ServerExplorerToolWindowFactory;
+import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
+import com.microsoft.azure.hdinsight.spark.UI.SparkSubmissionToolWindowFactory;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -34,6 +39,27 @@ public class HDInsightHelper {
         return instance;
     }
 
+    private HashMap<String, ToolWindowFactory> toolWindowFactoryCollection = new HashMap<String, ToolWindowFactory>();
+
+    public synchronized void registerToolWindowFactory(String toolWindowFactoryId, ToolWindowFactory toolWindowFactory) {
+        toolWindowFactoryCollection.put(toolWindowFactoryId, toolWindowFactory);
+    }
+
+    public ToolWindowFactory getToolWindowFactory(String toolWindowFactoryId) {
+        return toolWindowFactoryCollection.get(toolWindowFactoryId);
+    }
+
+    public HDInsightRootModule getServerExplorerRootModule() {
+        ToolWindowFactory toolWindowFactory = getToolWindowFactory(ServerExplorerToolWindowFactory.TOOLWINDOW_FACTORY_ID);
+
+        if (toolWindowFactory != null) {
+            return ((ServerExplorerToolWindowFactory) toolWindowFactory).getAzureServiceModule();
+
+        }
+
+        return null;
+    }
+
     private List<IClusterDetail> cachedClusterDetails;
 
     public List<IClusterDetail> getcachedClusterDetails(){
@@ -51,7 +77,7 @@ public class HDInsightHelper {
                 try {
                     clusterDetailList = ClusterManager.getInstance().getHDInsightClusersWithSpecificType(subscriptionList, ClusterType.spark);
                 } catch (Exception exception) {
-                    DefaultLoader.getUIHelper().showError("Failed to list HDInsight cluster", "List HDInsight Cluster");
+                    DefaultLoader.getUIHelper().showException("Failed to list HDInsight cluster", exception, "List HDInsight Cluster", false, true);
                 }
             }
         }
@@ -82,4 +108,10 @@ public class HDInsightHelper {
 
         return isReAuth;
     }
+
+
+    public SparkSubmissionToolWindowFactory getSparkSubmissionToolWindowFactory(){
+        return (SparkSubmissionToolWindowFactory)getToolWindowFactory(SparkSubmissionToolWindowFactory.SPARK_SUBMISSION_WINDOW);
+    }
 }
+

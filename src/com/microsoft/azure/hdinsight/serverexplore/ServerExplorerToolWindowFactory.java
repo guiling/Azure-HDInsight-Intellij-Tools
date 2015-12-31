@@ -13,7 +13,9 @@ import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.microsoft.azure.hdinsight.common.CommonConst;
+import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.PluginUtil;
+import com.microsoft.azure.hdinsight.serverexplore.UI.AddNewClusterFrom;
 import com.microsoft.azure.hdinsight.serverexplore.UI.ManageSubscriptionForm;
 import com.microsoft.azure.hdinsight.serverexplore.hdinsightnode.HDInsightRootModule;
 import com.microsoft.azure.hdinsight.serverexplore.collections.ListChangeListener;
@@ -22,6 +24,7 @@ import com.microsoft.azure.hdinsight.serverexplore.collections.ObservableList;
 import com.microsoft.azure.hdinsight.serverexplore.node.Node;
 import com.microsoft.azure.hdinsight.serverexplore.node.NodeAction;
 import org.jetbrains.annotations.NotNull;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.*;
@@ -40,11 +43,14 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
     private JTree tree;
     private HDInsightRootModule azureServiceModule;
     private DefaultTreeModel treeModel;
+    public static final String TOOLWINDOW_FACTORY_ID = "HDInsight Explorer";
 
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
         // initialize azure service module
         azureServiceModule = new HDInsightRootModule(project);
+
+        HDInsightHelper.getInstance().registerToolWindowFactory(TOOLWINDOW_FACTORY_ID, this);
 
         // initialize with all the service modules
         treeModel = new DefaultTreeModel(initRoot());
@@ -73,6 +79,10 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
             azureServiceModule.registerSubscriptionsChanged();
         } catch (HDExploreException ignored) {
         }
+    }
+
+    public HDInsightRootModule getAzureServiceModule() {
+        return azureServiceModule;
     }
 
     private DefaultMutableTreeNode initRoot() {
@@ -303,6 +313,13 @@ public class ServerExplorerToolWindowFactory implements ToolWindowFactory, Prope
                         @Override
                         public void actionPerformed(AnActionEvent anActionEvent) {
                             ManageSubscriptionForm form = new ManageSubscriptionForm(anActionEvent.getProject());
+                            form.show();
+                        }
+                    },
+                    new AnAction("Add New Cluster", "Add New Cluster", AllIcons.Ide.Link) {
+                        @Override
+                        public void actionPerformed(AnActionEvent anActionEvent) {
+                            AddNewClusterFrom form = new AddNewClusterFrom((anActionEvent.getProject()));
                             form.show();
                         }
                     });

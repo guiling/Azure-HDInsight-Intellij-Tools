@@ -40,7 +40,7 @@ public class SparkBatchSubmission {
      * @param password : password
      */
     public void setCredentialsProvider(String username, String password){
-        credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST,AuthScope.ANY_PORT), new UsernamePasswordCredentials(username, password));
+        credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY), new UsernamePasswordCredentials(username, password));
     }
 
     /**
@@ -49,28 +49,28 @@ public class SparkBatchSubmission {
      * @return response result
      * @throws IOException
      */
-    public String getAllBatchesSparkJobs(String connectUrl)throws IOException{
+    public HttpResponse getAllBatchesSparkJobs(String connectUrl)throws IOException{
         CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
+
         HttpGet httpGet = new HttpGet(connectUrl);
         httpGet.addHeader("Content-Type", "application/json");
-
         try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
             return SparkHelper.getResultFromHttpResponse(response);
         }
     }
 
     /**
-     * create batch spark job
+     * create batch sp  ark job
      * @param connectUrl : eg http://localhost:8998/batches
-     * @param submissonParameter : spark submission parameter
+     * @param submissionParameter : spark submission parameter
      * @return response result
      */
-    public String createBatchSparkJob(String connectUrl,SparkSubmissionParameter submissonParameter)throws IOException{
+    public HttpResponse createBatchSparkJob(String connectUrl,SparkSubmissionParameter submissionParameter)throws IOException{
         CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpPost httpPost = new HttpPost(connectUrl);
         httpPost.addHeader("Content-Type", "application/json");
         
-        String jsonString = new Gson().toJson(submissonParameter.getSparkSubmissionParameterMap());
+        String jsonString = new Gson().toJson(submissionParameter);
         StringEntity postingString =new StringEntity(jsonString);
         httpPost.setEntity(postingString);
         try(CloseableHttpResponse response = httpclient.execute(httpPost)) {
@@ -85,7 +85,7 @@ public class SparkBatchSubmission {
      * @return response result
      * @throws IOException
      */
-    public String getBatchSparkJobStatus(String connectUrl, String batchId)throws IOException{
+    public HttpResponse getBatchSparkJobStatus(String connectUrl, int batchId)throws IOException{
         CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpGet httpGet = new HttpGet(connectUrl + "/" + batchId);
         httpGet.addHeader("Content-Type", "application/json");
@@ -102,7 +102,7 @@ public class SparkBatchSubmission {
      * @return response result
      * @throws IOException
      */
-    public String killBatchJob(String connectUrl, String batchId)throws IOException {
+    public HttpResponse killBatchJob(String connectUrl, int batchId)throws IOException {
         CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
         HttpDelete httpDelete = new HttpDelete(connectUrl +  "/" + batchId);
         httpDelete.addHeader("Content-Type", "application/json");
@@ -119,9 +119,9 @@ public class SparkBatchSubmission {
      * @return response result
      * @throws IOException
      */
-    public String getBatchJobFullLog(String connectUrl, String batchId)throws IOException{
+    public HttpResponse getBatchJobFullLog(String connectUrl, int batchId)throws IOException{
         CloseableHttpClient httpclient = HttpClients.custom().setDefaultCredentialsProvider(credentialsProvider).build();
-        HttpGet httpGet = new HttpGet(connectUrl + "/" + batchId + "/log?from=0&size=" + Integer.MAX_VALUE);
+        HttpGet httpGet = new HttpGet(String.format("%s/%d/log?from=0&size=%d", connectUrl,batchId, Integer.MAX_VALUE));
         httpGet.addHeader("Content-Type", "application/json");
 
         try(CloseableHttpResponse response = httpclient.execute(httpGet)) {
