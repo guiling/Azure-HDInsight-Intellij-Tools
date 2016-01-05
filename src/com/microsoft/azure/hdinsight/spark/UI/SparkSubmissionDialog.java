@@ -2,21 +2,22 @@ package com.microsoft.azure.hdinsight.spark.UI;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.packaging.artifacts.Artifact;
+import com.intellij.packaging.impl.artifacts.ArtifactUtil;
+import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
+import com.intellij.packaging.impl.compiler.ArtifactsWorkspaceSettings;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.microsoft.azure.hdinsight.common.DefaultLoader;
 import com.microsoft.azure.hdinsight.common.HDInsightHelper;
 import com.microsoft.azure.hdinsight.common.StringHelper;
 import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
-import com.microsoft.azure.hdinsight.sdk.common.HDIException;
-import com.microsoft.azure.hdinsight.sdk.storage.BlobContainer;
-import com.microsoft.azure.hdinsight.sdk.storage.CallableSingleArg;
-import com.microsoft.azure.hdinsight.sdk.storage.StorageAccount;
-import com.microsoft.azure.hdinsight.sdk.storage.StorageClientImpl;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveRenderer;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveTableModel;
 import com.microsoft.azure.hdinsight.spark.common.*;
@@ -26,7 +27,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -47,11 +47,11 @@ public class SparkSubmissionDialog extends JDialog {
     private JTextField commandLineTextField;
     private JTextField referencedJarsTextField;
     private JTextField referencedFilesTextField;
-    private ComboBox timeoutComboBox;
+    private ComboBox selectedArtifactComboBox;
     private Project project;
 
     private Map<String, IClusterDetail> mapClusterNameToClusterDetail = new HashMap<>();
-    private Map<String, Integer> mapTimeoutTextToSeconds = new HashMap<>();
+    private Map<String, Artifact> artifactHashMap = new HashMap<>();
 
     public SparkSubmissionDialog(Project project, List<IClusterDetail> cachedClusterDetails) {
         setContentPane(contentPane);
@@ -67,7 +67,7 @@ public class SparkSubmissionDialog extends JDialog {
         addMainClassNameLineItem();
         addConfigurationLineItem();
         addCommandlineArgsLineItem();
-        addTimeoutLineItem();
+        addSelectedArtifactLineItem();
         addReferencedJarsLineItem();
         addReferencedFilesLineItem();
         addOperationJPanel();
@@ -92,15 +92,15 @@ public class SparkSubmissionDialog extends JDialog {
             }
         }
 
-        mapTimeoutTextToSeconds.put("2 minus", 120);
-        mapTimeoutTextToSeconds.put("5 minus", 300);
-        mapTimeoutTextToSeconds.put("10 minus", 600);
-        mapTimeoutTextToSeconds.put("30 minus", 1800);
-        for (String timeoutKey : mapTimeoutTextToSeconds.keySet()) {
-            timeoutComboBox.addItem(timeoutKey);
+        final List<Artifact> artifacts = ArtifactUtil.getArtifactWithOutputPaths(project);
+        for(Artifact artifact : artifacts){
+            artifactHashMap.put(artifact.getName(),artifact);
+            selectedArtifactComboBox.addItem(artifact.getName());
         }
 
-        timeoutComboBox.setSelectedItem("2 minus");
+        if(artifacts.size() > 0) {
+            selectedArtifactComboBox.setSelectedIndex(0);
+        }
     }
 
     private void addSparkClustersLineItem() {
@@ -126,31 +126,31 @@ public class SparkSubmissionDialog extends JDialog {
         JLabel sparkClusterLabel = new JLabel("Main class name");
         sparkClusterLabel.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
         sparkClusterLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        GridBagConstraints c21 = new GridBagConstraints();
-        c21.gridx = 0;
-        c21.gridy = 1;
-        c21.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(sparkClusterLabel, c21);
+        GridBagConstraints c31 = new GridBagConstraints();
+        c31.gridx = 0;
+        c31.gridy = 2;
+        c31.insets = new Insets(margin, margin, margin, margin);
+        contentPane.add(sparkClusterLabel, c31);
 
         mainClassTextField = new JTextField();
         mainClassTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
-        GridBagConstraints c22 = new GridBagConstraints();
-        c22.gridx = 1;
-        c22.gridy = 1;
-        c22.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(mainClassTextField, c22);
+        GridBagConstraints c32 = new GridBagConstraints();
+        c32.gridx = 1;
+        c32.gridy = 2;
+        c32.insets = new Insets(margin, margin, margin, margin);
+        contentPane.add(mainClassTextField, c32);
     }
 
     private void addConfigurationLineItem() {
         JLabel jobConfigurationLabel = new JLabel("Job configurations");
         jobConfigurationLabel.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
         jobConfigurationLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        GridBagConstraints c31 = new GridBagConstraints();
-        c31.gridx = 0;
-        c31.gridy = 2;
-        c31.anchor = GridBagConstraints.NORTH;
-        c31.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(jobConfigurationLabel, c31);
+        GridBagConstraints c41 = new GridBagConstraints();
+        c41.gridx = 0;
+        c41.gridy = 3;
+        c41.anchor = GridBagConstraints.NORTH;
+        c41.insets = new Insets(margin, margin, margin, margin);
+        contentPane.add(jobConfigurationLabel, c41);
 
         String[] columns = {"Key", "Value", ""};
 
@@ -175,34 +175,15 @@ public class SparkSubmissionDialog extends JDialog {
         jobConfigurationTable.setFillsViewportHeight(true);
         scrollPane.setPreferredSize(new Dimension(rightControlWidth, tableHeight));
 
-        GridBagConstraints c32 = new GridBagConstraints();
-        c32.gridx = 1;
-        c32.gridy = 2;
-        c32.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(scrollPane, c32);
-    }
-
-    private void addCommandlineArgsLineItem() {
-        JLabel commandLineArgs = new JLabel("Command line arguments");
-        commandLineArgs.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
-        commandLineArgs.setHorizontalAlignment(SwingConstants.LEFT);
-        GridBagConstraints c41 = new GridBagConstraints();
-        c41.gridx = 0;
-        c41.gridy = 3;
-        c41.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(commandLineArgs, c41);
-
-        commandLineTextField = new JTextField();
-        commandLineTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
         GridBagConstraints c42 = new GridBagConstraints();
         c42.gridx = 1;
         c42.gridy = 3;
         c42.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(commandLineTextField, c42);
+        contentPane.add(scrollPane, c42);
     }
 
-    private void addReferencedJarsLineItem() {
-        JLabel commandLineArgs = new JLabel("Referenced Jars");
+    private void addCommandlineArgsLineItem() {
+        JLabel commandLineArgs = new JLabel("Command line arguments");
         commandLineArgs.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
         commandLineArgs.setHorizontalAlignment(SwingConstants.LEFT);
         GridBagConstraints c51 = new GridBagConstraints();
@@ -211,17 +192,17 @@ public class SparkSubmissionDialog extends JDialog {
         c51.insets = new Insets(margin, margin, margin, margin);
         contentPane.add(commandLineArgs, c51);
 
-        referencedJarsTextField = new JTextField();
-        referencedJarsTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
+        commandLineTextField = new JTextField();
+        commandLineTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
         GridBagConstraints c52 = new GridBagConstraints();
         c52.gridx = 1;
         c52.gridy = 4;
         c52.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(referencedJarsTextField, c52);
+        contentPane.add(commandLineTextField, c52);
     }
 
-    private void addReferencedFilesLineItem() {
-        JLabel commandLineArgs = new JLabel("Referenced Files");
+    private void addReferencedJarsLineItem() {
+        JLabel commandLineArgs = new JLabel("Referenced Jars");
         commandLineArgs.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
         commandLineArgs.setHorizontalAlignment(SwingConstants.LEFT);
         GridBagConstraints c61 = new GridBagConstraints();
@@ -230,34 +211,52 @@ public class SparkSubmissionDialog extends JDialog {
         c61.insets = new Insets(margin, margin, margin, margin);
         contentPane.add(commandLineArgs, c61);
 
-        referencedFilesTextField = new JTextField();
-        referencedFilesTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
+        referencedJarsTextField = new JTextField();
+        referencedJarsTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
         GridBagConstraints c62 = new GridBagConstraints();
         c62.gridx = 1;
         c62.gridy = 5;
         c62.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(referencedFilesTextField, c62);
+        contentPane.add(referencedJarsTextField, c62);
     }
 
-    private void addTimeoutLineItem() {
-        JLabel submissionTimeOutLabel = new JLabel("Submission timeout");
-        submissionTimeOutLabel.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
-        submissionTimeOutLabel.setHorizontalAlignment(SwingConstants.LEFT);
+    private void addReferencedFilesLineItem() {
+        JLabel commandLineArgs = new JLabel("Referenced Files");
+        commandLineArgs.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
+        commandLineArgs.setHorizontalAlignment(SwingConstants.LEFT);
         GridBagConstraints c71 = new GridBagConstraints();
         c71.gridx = 0;
         c71.gridy = 6;
         c71.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(submissionTimeOutLabel, c71);
+        contentPane.add(commandLineArgs, c71);
 
-        timeoutComboBox = new ComboBox();
-        timeoutComboBox.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
+        referencedFilesTextField = new JTextField();
+        referencedFilesTextField.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
         GridBagConstraints c72 = new GridBagConstraints();
         c72.gridx = 1;
         c72.gridy = 6;
         c72.insets = new Insets(margin, margin, margin, margin);
-        contentPane.add(timeoutComboBox, c72);
+        contentPane.add(referencedFilesTextField, c72);
     }
 
+    private void addSelectedArtifactLineItem() {
+        JLabel submissionTimeOutLabel = new JLabel("Build Artifacts");
+        submissionTimeOutLabel.setPreferredSize(new Dimension(leftControlWidth, controlHeight));
+        submissionTimeOutLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        GridBagConstraints c21 = new GridBagConstraints();
+        c21.gridx = 0;
+        c21.gridy = 1;
+        c21.insets = new Insets(margin, margin, margin, margin);
+        contentPane.add(submissionTimeOutLabel, c21);
+
+        selectedArtifactComboBox = new ComboBox();
+        selectedArtifactComboBox.setPreferredSize(new Dimension(rightControlWidth, controlHeight));
+        GridBagConstraints c22 = new GridBagConstraints();
+        c22.gridx = 1;
+        c22.gridy = 1;
+        c22.insets = new Insets(margin, margin, margin, margin);
+        contentPane.add(selectedArtifactComboBox, c22);
+    }
 
     private void addOperationJPanel() {
         JPanel operationPanel = new JPanel();
@@ -286,8 +285,22 @@ public class SparkSubmissionDialog extends JDialog {
 
     private void onOK() {
         ToolWindow sparkSubmissionToolWindow = ToolWindowManager.getInstance(this.project).getToolWindow(SparkSubmissionToolWindowFactory.SPARK_SUBMISSION_WINDOW);
+
+        List<Artifact> artifacts = new ArrayList<>();
+        artifacts.add((artifactHashMap.get(selectedArtifactComboBox.getSelectedItem())));
+        final CompileScope scope = ArtifactCompileScope.createArtifactsScope(project, artifacts, true);
+        ArtifactsWorkspaceSettings.getInstance(project).setArtifactsToBuild(artifacts);
+
+        CompilerManager.getInstance(project).make(scope, (aborted, errors, warnings, compileContext) -> {
+            if (aborted || errors != 0){
+                sparkSubmissionToolWindow.show(() -> HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Failed to build selected artifact."));
+                return;
+            }else {
+                sparkSubmissionToolWindow.show(() -> submit());
+            }});
+
         // TODO: check submission parameters
-        sparkSubmissionToolWindow.show(() -> submit());
+
         dispose();
     }
 
@@ -303,7 +316,7 @@ public class SparkSubmissionDialog extends JDialog {
                     selectedClusterDetail.getConfigurationInfo();
                 }
 
-                String buildJarPath = "/home/joezhang/SimpleApp3.jar";
+                String buildJarPath = ((artifactHashMap.get(selectedArtifactComboBox.getSelectedItem()).getOutputFilePath()));
                 HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo(String.format("Info : Get target jar from %s.", buildJarPath));
 
                 String uniqueFolderId = UUID.randomUUID().toString();
@@ -322,7 +335,6 @@ public class SparkSubmissionDialog extends JDialog {
                     referencedFileList = SparkSubmitHelper.getInstance().uploadFileListToAzureBlob(referencedFiles, selectedClusterDetail.getStorageAccount(), selectedClusterDetail.getStorageAccount().getDefaultContainer(), uniqueFolderId);
                 }
 
-                // TODO: set submit timeout
                 SparkBatchSubmission.getInstance().setCredentialsProvider(selectedClusterDetail.getHttpUserName(), selectedClusterDetail.getHttpPassword());
                 HttpResponse response = SparkBatchSubmission.getInstance().createBatchSparkJob(selectedClusterDetail.getConnectionUrl() + "/livy/batches",
                         constructSubmissionParameter(fileOnBlobPath, referencedFileList, referencedJarsList));
