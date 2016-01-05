@@ -20,5 +20,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="HdInsightSDK" />
     <orderEntry type="library" name="azure-activedirectory-interactive-auth-library-for-java" level="project" />
+    <orderEntry type="library" name="java-json" level="project" />
   </component>
 </module>

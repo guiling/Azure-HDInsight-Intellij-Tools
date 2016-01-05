@@ -125,8 +125,6 @@ public class ClusterDetail implements IClusterDetail {
     }
 
     public void getConfigurationInfo() throws IOException, HDIException{
-        isConfigInfoAvailable = true;
-
         IClusterOperation clusterOperation = new ClusterOperationImpl();
         ClusterConfiguration clusterConfiguration =
                 clusterOperation.getClusterConfiguration(subscription, clusterRawInfo.getId());
@@ -144,6 +142,8 @@ public class ClusterDetail implements IClusterDetail {
                 this.additionalStorageAccounts = getAdditionalStorageAccounts(coresSiteMap);
             }
         }
+
+        isConfigInfoAvailable = true;
     }
 
     private StorageAccount getDefaultStorageAccount(Map<String, String> coresiteMap) throws HDIException{

@@ -23,12 +23,10 @@ public interface AzureManager {
     void clearAuthentication();
 
     @NotNull
-    List<Subscription> getFullSubscriptionList()
-            throws HDExploreException;
+    List<Subscription> getFullSubscriptionList();
 
     @NotNull
-    List<Subscription> getSubscriptionList()
-            throws HDExploreException;
+    List<Subscription> getSubscriptionList();
 
     void setSelectedSubscriptions(@NotNull List<String> selectedList)
             throws HDExploreException;

@@ -83,8 +83,7 @@ public class ManageSubscriptionForm extends DialogWrapper {
                     DefaultLoader.getUIHelper().showException("An error occurred while attempting to sign in to " +
                                     "your account.", e1,
                             "HDInsight  Explorer - Error Signing In", false, true);
-                }
-                finally {
+                } finally {
                     form.getWindow().setCursor(Cursor.getDefaultCursor());
                 }
             }
@@ -176,34 +175,27 @@ public class ManageSubscriptionForm extends DialogWrapper {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-                try {
-                    while (model.getRowCount() > 0) {
-                        model.removeRow(0);
-                    }
-
-                    subscriptionList = AzureManagerImpl.getManager().getFullSubscriptionList();
-
-                    if (subscriptionList.size() > 0) {
-                        for (Subscription subs : subscriptionList) {
-                            Vector<Object> row = new Vector<Object>();
-                            row.add(subs.isSelected());
-                            row.add(subs.getDisplayName());
-                            row.add(subs.getSubscriptionId());
-                            model.addRow(row);
-                        }
-
-                        removeButton.setEnabled(true);
-                    } else {
-                        removeButton.setEnabled(false);
-                    }
-
-                    form.getWindow().setCursor(Cursor.getDefaultCursor());
-                } catch (HDExploreException e) {
-                    form.getWindow().setCursor(Cursor.getDefaultCursor());
-                    DefaultLoader.getUIHelper().showException("An error occurred while attempting to get the " +
-                                    "subscription list.", e,
-                            "Azure Services Explorer - Error Getting Subscriptions", false, true);
+                while (model.getRowCount() > 0) {
+                    model.removeRow(0);
                 }
+
+                subscriptionList = AzureManagerImpl.getManager().getFullSubscriptionList();
+
+                if (subscriptionList.size() > 0) {
+                    for (Subscription subs : subscriptionList) {
+                        Vector<Object> row = new Vector<Object>();
+                        row.add(subs.isSelected());
+                        row.add(subs.getDisplayName());
+                        row.add(subs.getSubscriptionId());
+                        model.addRow(row);
+                    }
+
+                    removeButton.setEnabled(true);
+                } else {
+                    removeButton.setEnabled(false);
+                }
+
+                form.getWindow().setCursor(Cursor.getDefaultCursor());
             }
         });
     }

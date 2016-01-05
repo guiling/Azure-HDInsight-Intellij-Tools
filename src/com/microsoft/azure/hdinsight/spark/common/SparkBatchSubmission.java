@@ -70,8 +70,7 @@ public class SparkBatchSubmission {
         HttpPost httpPost = new HttpPost(connectUrl);
         httpPost.addHeader("Content-Type", "application/json");
         
-        String jsonString = new Gson().toJson(submissionParameter);
-        StringEntity postingString =new StringEntity(jsonString);
+        StringEntity postingString =new StringEntity(submissionParameter.serializeToJson());
         httpPost.setEntity(postingString);
         try(CloseableHttpResponse response = httpclient.execute(httpPost)) {
             return SparkHelper.getResultFromHttpResponse(response);

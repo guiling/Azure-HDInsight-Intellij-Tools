@@ -1,5 +1,7 @@
 package com.microsoft.azure.hdinsight.spark.UIHelper;
 
+import com.microsoft.azure.hdinsight.common.StringHelper;
+
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -99,7 +101,7 @@ public class InteractiveTableModel extends AbstractTableModel{
         }
 
         ConfigurationKeyValueRecord record = dataRecords.get(getRowCount() -1);
-        if(record.getKey().trim().equals("") && record.getValue().toString().trim().equals("")){
+        if(StringHelper.isNullOrWhiteSpace(record.getKey())&& StringHelper.isNullOrWhiteSpace(record.getValue().toString())){
             return true;
         }
 
