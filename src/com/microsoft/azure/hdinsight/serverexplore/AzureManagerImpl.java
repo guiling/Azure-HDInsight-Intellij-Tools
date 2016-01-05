@@ -168,8 +168,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @NotNull
     @Override
-    public List<Subscription> getFullSubscriptionList()
-            throws HDExploreException {
+    public List<Subscription> getFullSubscriptionList() {
         authDataLock.readLock().lock();
 
         try {
@@ -187,8 +186,7 @@ public class AzureManagerImpl implements AzureManager {
 
     @NotNull
     @Override
-    public List<Subscription> getSubscriptionList()
-            throws HDExploreException {
+    public List<Subscription> getSubscriptionList() {
         authDataLock.readLock().lock();
 
         try {

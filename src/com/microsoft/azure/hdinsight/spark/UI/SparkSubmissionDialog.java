@@ -286,6 +286,7 @@ public class SparkSubmissionDialog extends JDialog {
 
     private void onOK() {
         ToolWindow sparkSubmissionToolWindow = ToolWindowManager.getInstance(this.project).getToolWindow(SparkSubmissionToolWindowFactory.SPARK_SUBMISSION_WINDOW);
+        // TODO: check submission parameters
         sparkSubmissionToolWindow.show(() -> submit());
         dispose();
     }
@@ -293,7 +294,8 @@ public class SparkSubmissionDialog extends JDialog {
     private void submit() {
         DefaultLoader.getIdeHelper().executeOnPooledThread(() -> {
             try {
-                HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().clearAll();
+                HDInsightHelper.getInstance()
+                        .getSparkSubmissionToolWindowFactory().clearAll();
 
                 IClusterDetail selectedClusterDetail = mapClusterNameToClusterDetail.get(clustersListComboBox.getSelectedItem().toString());
                 HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo(String.format("Info : Begin to submit application to %s cluster ...", selectedClusterDetail.getName()));
@@ -305,13 +307,25 @@ public class SparkSubmissionDialog extends JDialog {
                 HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo(String.format("Info : Get target jar from %s.", buildJarPath));
 
                 String uniqueFolderId = UUID.randomUUID().toString();
-                HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo("Info : Begin upload target jar to azure blob ...");
-                String fileOnBlobPath = uploadBuildJarToAzure(buildJarPath, selectedClusterDetail.getStorageAccount(), selectedClusterDetail.getStorageAccount().getDefaultContainer(), uniqueFolderId);
-                HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo(String.format("Info : Submit target jar to azure blob '%s' successfully.", fileOnBlobPath));
+
+                String fileOnBlobPath = SparkSubmitHelper.getInstance().uploadFileToAzureBlob(buildJarPath, selectedClusterDetail.getStorageAccount(), selectedClusterDetail.getStorageAccount().getDefaultContainer(), uniqueFolderId);
+
+                List<String> referencedJarsList = new ArrayList<>();
+                String referencedJars = referencedJarsTextField.getText();
+                if(referencedJars != null && !StringHelper.isNullOrWhiteSpace(referencedJars)){
+                    referencedJarsList = SparkSubmitHelper.getInstance().uploadFileListToAzureBlob(referencedJars, selectedClusterDetail.getStorageAccount(), selectedClusterDetail.getStorageAccount().getDefaultContainer(), uniqueFolderId);
+                }
+
+                List<String> referencedFileList = new ArrayList<>();
+                String referencedFiles = referencedFilesTextField.getText();
+                if(referencedFiles != null && !StringHelper.isNullOrWhiteSpace(referencedFiles)){
+                    referencedFileList = SparkSubmitHelper.getInstance().uploadFileListToAzureBlob(referencedFiles, selectedClusterDetail.getStorageAccount(), selectedClusterDetail.getStorageAccount().getDefaultContainer(), uniqueFolderId);
+                }
 
                 // TODO: set submit timeout
                 SparkBatchSubmission.getInstance().setCredentialsProvider(selectedClusterDetail.getHttpUserName(), selectedClusterDetail.getHttpPassword());
-                HttpResponse response = SparkBatchSubmission.getInstance().createBatchSparkJob(selectedClusterDetail.getConnectionUrl() + "/livy/batches", constructSubmissionParameter(fileOnBlobPath));
+                HttpResponse response = SparkBatchSubmission.getInstance().createBatchSparkJob(selectedClusterDetail.getConnectionUrl() + "/livy/batches",
+                        constructSubmissionParameter(fileOnBlobPath, referencedFileList, referencedJarsList));
                 if (response.getStatusCode() == 201 || response.getStatusCode() == 200) {
                     HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo("Submit to spark cluster successfully.");
 
@@ -319,7 +333,8 @@ public class SparkSubmissionDialog extends JDialog {
                     HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setHyperlink(jobLink, "See spark job view from " + jobLink);
                     SparkSubmitResponse sparkSubmitResponse = new Gson().fromJson(response.getMessage(), new TypeToken<SparkSubmitResponse>() {
                     }.getType());
-                    printRunningLogStreamingly(sparkSubmitResponse.getId(), selectedClusterDetail);
+
+                    SparkSubmitHelper.getInstance().printRunningLogStreamingly(sparkSubmitResponse.getId(), selectedClusterDetail);
                 } else {
                     HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError(String.format("Error : Failed to submit to spark cluster. error code : %d, reason :  %s.",
                             response.getStatusCode(), response.getReason()));
@@ -331,74 +346,14 @@ public class SparkSubmissionDialog extends JDialog {
         });
     }
 
-    private void printRunningLogStreamingly(int id, IClusterDetail clusterDetail) throws IOException {
-        HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo("======================Begin printing out spark job log.=======================");
-        try {
-            boolean isFailedJob = false;
-            while (true) {
-                printoutJobLog(id, clusterDetail);
-                HttpResponse statusHttpResponse = SparkBatchSubmission.getInstance().getBatchSparkJobStatus(clusterDetail.getConnectionUrl() + "/livy/batches", id);
-                SparkSubmitResponse status = new Gson().fromJson(statusHttpResponse.getMessage(), new TypeToken<SparkSubmitResponse>() {}.getType());
-
-                if(status.getState().toLowerCase().equals("error") || status.getState().toLowerCase().equals("success")){
-                    if(status.getState().toLowerCase().equals("error")){
-                        isFailedJob = true;
-                    }
-                    printoutJobLog(id, clusterDetail);
-                    HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo("======================Finish printing out spark job log.=======================");
-                    break;
-                }
-            }
-
-            if(isFailedJob){
-                HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Your submitted job run failed");
-            }
-
-        } catch (Exception e) {
-            HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Failed to getting running log. Exception : " + e.toString());
-        }
-    }
-
-    private void printoutJobLog(int id, IClusterDetail clusterDetail) throws IOException {
-        HttpResponse sparkLog = SparkBatchSubmission.getInstance().getBatchJobFullLog(clusterDetail.getConnectionUrl() + "/livy/batches", id);
-
-        SparkJobLog sparkJobLog = new Gson().fromJson(sparkLog.getMessage(), new TypeToken<SparkJobLog>() {}.getType());
-
-        if (sparkJobLog.getLog().size() > 0) {
-            StringBuilder tempLogBuilder = new StringBuilder();
-            for (String partLog : sparkJobLog.getLog()) {
-                tempLogBuilder.append(partLog);
-            }
-
-            HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setDuplicatedInfo(tempLogBuilder.toString());
-        }
-    }
-
-
-    private SparkSubmissionParameter constructSubmissionParameter(String fileOnBlobPath) {
+    private SparkSubmissionParameter constructSubmissionParameter(String fileOnBlobPath, List<String>referencedFileList, List<String>referencedJarList) {
         String className = mainClassTextField.getText();
         String commandLine = commandLineTextField.getText();
-        String referencedJars = referencedJarsTextField.getText();
-        String referencedFiles = referencedFilesTextField.getText();
 
         List<String> argsList = new ArrayList<>();
         for (String singleArs : commandLine.split(" ")) {
             if (!StringHelper.isNullOrWhiteSpace(singleArs)) {
                 argsList.add(singleArs.trim());
-            }
-        }
-
-        List<String> referencedJarList = new ArrayList<>();
-        for (String singleReferencedJar : referencedJars.split(";")) {
-            if (!StringHelper.isNullOrWhiteSpace(singleReferencedJar)) {
-                referencedJarList.add(singleReferencedJar);
-            }
-        }
-
-        List<String> referencedFileList = new ArrayList<>();
-        for (String singleReferencedFile : referencedFiles.split(";")) {
-            if (!StringHelper.isNullOrWhiteSpace(singleReferencedFile)) {
-                referencedFileList.add(singleReferencedFile);
             }
         }
 
@@ -411,47 +366,6 @@ public class SparkSubmissionDialog extends JDialog {
         }
 
         return new SparkSubmissionParameter(fileOnBlobPath, className, referencedFileList, referencedJarList, argsList, jobConfigMap);
-    }
-
-    private String uploadBuildJarToAzure(String localFile, StorageAccount storageAccount, String defaultContainerName, String uniqueFolderId) throws HDIException, IOException {
-        File file = new File(localFile);
-
-        try (FileInputStream fileInputStream = new FileInputStream(file)) {
-            try (BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream)) {
-                final CallableSingleArg<Void, Long> callable = new CallableSingleArg<Void, Long>() {
-                    @Override
-                    public Void call(Long uploadedBytes) throws Exception {
-                        double progress = ((double) uploadedBytes) / file.length();
-                        return null;
-                    }
-                };
-
-                BlobContainer defaultContainer = getSparkClusterDefaultContainer(storageAccount, defaultContainerName);
-                String path = String.format("SparkSubmission/%s/%s", uniqueFolderId, file.getName());
-                StorageClientImpl.getInstance().uploadBlobFileContent(
-                        storageAccount,
-                        defaultContainer,
-                        path,
-                        bufferedInputStream,
-                        callable,
-                        1024 * 1024,
-                        file.length());
-                //For example : "wasb://sparktest@vstooleastustest.blob.core.windows.net/user/spark/SimpleApp3.jar"
-                return String.format("wasb://%s@%s/%s", defaultContainerName, storageAccount.getFullStoragBlobName(), path);
-            }
-        }
-    }
-
-    //TODO : a better way to get container
-    private BlobContainer getSparkClusterDefaultContainer(StorageAccount storageAccount, String defalutContainerName) throws HDIException {
-        List<BlobContainer> containerList = StorageClientImpl.getInstance().getBlobContainers(storageAccount);
-        for (BlobContainer container : containerList) {
-            if (container.getName().toLowerCase().equals(defalutContainerName.toLowerCase())) {
-                return container;
-            }
-        }
-
-        return null;
     }
 
     private void onCancel() {

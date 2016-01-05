@@ -83,11 +83,6 @@ public class HDInsightRootModule extends RefreshableNode {
                 addChildNode(new ClusterNode(this, clusterDetail));
             }
         }
-
-        hdinsightAdditionalList = getAdditionalClusters();
-        for (IClusterDetail clusterDetail : hdinsightAdditionalList) {
-            addChildNode(new ClusterNode(this, clusterDetail));
-        }
     }
 
     @Override
@@ -146,23 +141,4 @@ public class HDInsightRootModule extends RefreshableNode {
         String json = gson.toJson(hdinsightAdditionalList);
         DefaultLoader.getIdeHelper().setProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS, json);
     }
-
-    private List<IClusterDetail> getAdditionalClusters() {
-        Gson gson = new Gson();
-        String json = DefaultLoader.getIdeHelper().getProperty(CommonConst.HDINSIGHT_ADDITIONAL_CLUSTERS);
-        List<IClusterDetail> hdiLocalClusters = new ArrayList<IClusterDetail>();
-
-        if (!StringHelper.isNullOrWhiteSpace(json)) {
-            try {
-                hdiLocalClusters = gson.fromJson(json, new TypeToken<ArrayList<HDInsightAdditionalClusterDetail>>() {
-                }.getType());
-            } catch (JsonSyntaxException e) {
-                //do nothing if we cannot get it from json
-            }
-        }
-
-        return hdiLocalClusters;
-    }
-
-
 }
