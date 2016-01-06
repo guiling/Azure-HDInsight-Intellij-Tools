@@ -20,9 +20,11 @@ package com.microsoft.azure.hdinsight.spark.common;
  * name	            Name of the application	string
  */
 
+import com.microsoft.azure.hdinsight.common.StringHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ import java.util.Map;
  queue	            The YARN queue to submit too (YARN mode only)	string
  name	            Name of the application	string
  */
+
 
 public class SparkSubmissionParameter {
 
@@ -74,6 +77,40 @@ public class SparkSubmissionParameter {
         this.jars = referencedJars;
         this.jobConfig = jobConfig;
         this.args = args;
+    }
+
+
+    public static List<String> checkJobConfigMap(Map<String, Object> jobConfigMap){
+
+        List<String> errorMessageList = new ArrayList<>();
+        for(Map.Entry<String, Object> entry : jobConfigMap.entrySet()) {
+            if(entry.getKey().equals(driverCores)
+                    || entry.getKey().equals(numExecutors)
+                    || entry.getKey().equals(executorCores)){
+                if(StringHelper.isNullOrWhiteSpace(entry.getValue().toString())){
+                    errorMessageList.add(String.format("Error : Value of \"%s\" should not be empty",entry.getKey()));
+                    continue;
+                }
+
+                try {
+                    Integer.parseInt(entry.getValue().toString());
+                } catch (NumberFormatException e){
+                    errorMessageList.add(String.format("Error : Failed to parse \"%s\", it should be an integer", entry.getValue()));
+                }
+            } else if(entry.getKey().equals(driverMemory)
+                    ||entry.getKey().equals(executorMemory)
+                    ||entry.getKey().equals(sparkJobName)){
+                if(StringHelper.isNullOrWhiteSpace(entry.getValue().toString())){
+                    errorMessageList.add(String.format("Error : Value of \"%s\" should not be empty",entry.getKey()));
+                }
+            }else
+            {
+                errorMessageList.add(String.format("Error : Key \"%s\" is invalid. It should be one of \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"",
+                        entry.getKey(),driverMemory,driverCores,executorMemory,numExecutors,executorCores,sparkJobName));
+            }
+        }
+
+        return errorMessageList;
     }
 
     public String serializeToJson() {

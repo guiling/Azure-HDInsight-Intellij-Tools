@@ -21,12 +21,14 @@ import com.microsoft.azure.hdinsight.sdk.cluster.IClusterDetail;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveRenderer;
 import com.microsoft.azure.hdinsight.spark.UIHelper.InteractiveTableModel;
 import com.microsoft.azure.hdinsight.spark.common.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -286,30 +288,86 @@ public class SparkSubmissionDialog extends JDialog {
     private void onOK() {
         ToolWindow sparkSubmissionToolWindow = ToolWindowManager.getInstance(this.project).getToolWindow(SparkSubmissionToolWindowFactory.SPARK_SUBMISSION_WINDOW);
 
+        HDInsightHelper.getInstance()
+                .getSparkSubmissionToolWindowFactory().clearAll();
+
+        if (!CheckSettingParamters(sparkSubmissionToolWindow)) {
+            dispose();
+            return;
+        }
+
         List<Artifact> artifacts = new ArrayList<>();
         artifacts.add((artifactHashMap.get(selectedArtifactComboBox.getSelectedItem())));
         final CompileScope scope = ArtifactCompileScope.createArtifactsScope(project, artifacts, true);
         ArtifactsWorkspaceSettings.getInstance(project).setArtifactsToBuild(artifacts);
 
         CompilerManager.getInstance(project).make(scope, (aborted, errors, warnings, compileContext) -> {
-            if (aborted || errors != 0){
+            if (aborted || errors != 0) {
                 sparkSubmissionToolWindow.show(() -> HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Failed to build selected artifact."));
                 return;
-            }else {
+            } else {
                 sparkSubmissionToolWindow.show(() -> submit());
             }});
 
-        // TODO: check submission parameters
-
         dispose();
+    }
+
+    private boolean CheckSettingParamters(ToolWindow sparkSubmissionToolWindow) {
+        boolean isValid = true;
+        if(clustersListComboBox.getSelectedItem() == null){
+            sparkSubmissionToolWindow.show(() ->
+                    HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Please select an available spark cluster before submitting."));
+            isValid = false;
+        }
+
+        if(selectedArtifactComboBox.getSelectedItem() == null){
+            sparkSubmissionToolWindow.show(() -> HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Please select an artifact before submitting."));
+            isValid = false;
+        }
+
+        String mainClassName = mainClassTextField.getText();
+        if(StringHelper.isNullOrWhiteSpace(mainClassName)){
+            sparkSubmissionToolWindow.show(() -> HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : Main class name can not be empty."));
+            isValid = false;
+        }
+
+        List<String> errorList = SparkSubmissionParameter.checkJobConfigMap(getJobConfigMap());
+        if(errorList.size() > 0){
+            isValid = false;
+            sparkSubmissionToolWindow.show(() -> {
+                for (String error : errorList) {
+                    HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError("Error : " + error);
+                }
+            });
+        }
+
+
+        for (String singleReferencedFile : referencedFilesTextField.getText().split(";")) {
+            if (!StringHelper.isNullOrWhiteSpace(singleReferencedFile)) {
+               if(!new File(singleReferencedFile).exists()){
+                   isValid = false;
+                   sparkSubmissionToolWindow.show(() -> HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError
+                           (String.format("Error : Referenced File %s does not exist.",singleReferencedFile)));
+               }
+            }
+        }
+
+        for (String singleReferencedJar : referencedJarsTextField .getText().split(";")) {
+            if (!StringHelper.isNullOrWhiteSpace(singleReferencedJar)) {
+                if(!new File(singleReferencedJar).exists()){
+                    isValid = false;
+                    sparkSubmissionToolWindow.show(() -> HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setError
+                            (String.format("Error : Referenced Jar %s does not exist.",singleReferencedJar)));
+                }
+            }
+        }
+
+        return isValid;
     }
 
     private void submit() {
         DefaultLoader.getIdeHelper().executeOnPooledThread(() -> {
             try {
-                HDInsightHelper.getInstance()
-                        .getSparkSubmissionToolWindowFactory().clearAll();
-
                 IClusterDetail selectedClusterDetail = mapClusterNameToClusterDetail.get(clustersListComboBox.getSelectedItem().toString());
                 HDInsightHelper.getInstance().getSparkSubmissionToolWindowFactory().setInfo(String.format("Info : Begin to submit application to %s cluster ...", selectedClusterDetail.getName()));
                 if (!selectedClusterDetail.isConfigInfoAvailable()) {
@@ -369,6 +427,13 @@ public class SparkSubmissionDialog extends JDialog {
             }
         }
 
+        Map<String, Object> jobConfigMap = getJobConfigMap();
+
+        return new SparkSubmissionParameter(fileOnBlobPath, className, referencedFileList, referencedJarList, argsList, jobConfigMap);
+    }
+
+    @NotNull
+    private Map<String, Object> getJobConfigMap() {
         Map<String, Object> jobConfigMap = new HashMap<>();
         TableModel tableModel = jobConfigurationTable.getModel();
         for (int index = 0; index < tableModel.getRowCount(); index++) {
@@ -377,7 +442,7 @@ public class SparkSubmissionDialog extends JDialog {
             }
         }
 
-        return new SparkSubmissionParameter(fileOnBlobPath, className, referencedFileList, referencedJarList, argsList, jobConfigMap);
+        return jobConfigMap;
     }
 
     private void onCancel() {
